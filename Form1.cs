@@ -84,6 +84,9 @@ namespace INFOIBV
                 {true, true, true, true, true}
             });*/
             Image = edgeDetection(Image);
+            Image = compute(Image, (v) => Math.Abs(v));
+            Image = normalize(Image, 255);
+            Image = threshold(Image, 30, 255, false);
 
             /*
             for (int x = 0; x < InputImage.Size.Width; x++)
@@ -99,11 +102,15 @@ namespace INFOIBV
             //==========================================================================================
 
             // Copy array to output Bitmap
+            Image = normalize(Image, 255);
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
                     int value = Image[x, y];
+                    // Clamp value.
+                    //value = Math.Min(Math.Max(value, 0), 255);
+
                     OutputImage.SetPixel(x, y, Color.FromArgb(value, value, value));               // Set the pixel color at coordinate (x,y)
                 }
             }
@@ -153,10 +160,9 @@ namespace INFOIBV
 
                             newValue += (int)(weight * oldValue);
                         }
-                    }
 
-                    // Clamp the result to ensure valid gray values.
-                    result[x, y] = Math.Min(Math.Max(newValue, 0), 255);
+                        result[x, y] = newValue; // Note: Not clamped
+                    }
                 }
             }
 
@@ -273,6 +279,7 @@ namespace INFOIBV
         }
 
         public delegate int PixelArithmetic(int x, int y);
+        public delegate int PixelArithmeticOne(int x);
 
         private int[,] combine(int[,] one, int[,] two, PixelArithmetic f)
         {
@@ -282,6 +289,53 @@ namespace INFOIBV
                     result[x, y] = f(one[x, y], two[x, y]);
                 }
             }
+            return result;
+        }
+
+        private int[,] compute(int[,] image, PixelArithmeticOne f) 
+        {
+            int[,] result = new int[image.GetLength(0), image.GetLength(1)];
+            for(int x = 0; x < image.GetLength(0); x++) {
+                for(int y = 0; y < image.GetLength(1); y++) {
+                    result[x, y] = f(image[x, y]);
+                }
+            }
+            return result;
+        }
+
+        private void findBounds(int[,] image, out int lower, out int upper) 
+        {
+            lower = 0;
+            upper = 255;
+
+            for(int x = 0; x < image.GetLength(0); x++) {
+                for(int y = 0; y < image.GetLength(1); y++) {
+                    int value = image[x, y];
+                    if(value < lower)
+                        lower = value;
+                    if(value > upper)
+                        upper = value;
+                }
+            }
+        }
+
+        private int[,] normalize(int[,] image, int max)
+        {
+            int lower, upper;
+            findBounds(image, out lower, out upper);
+
+            Console.WriteLine(lower + "  -  " + upper);
+            float scale = (float)max / (upper - lower);
+            Console.WriteLine(scale);
+            int[,] result = new int[image.GetLength(0), image.GetLength(1)];
+
+            for(int x = 0; x < image.GetLength(0); x++) {
+                for(int y = 0; y < image.GetLength(1); y++) {
+                    int value = image[x, y];
+                    result[x, y] = (int)((value - lower) * scale);
+                }
+            }
+
             return result;
         }
     }

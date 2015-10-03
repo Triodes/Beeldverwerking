@@ -83,7 +83,7 @@ namespace INFOIBV
                 {true, true, true, true, true}, 
                 {true, true, true, true, true}
             });*/
-            Image = threshold(Image, 128, 255, true);
+            Image = edgeDetection(Image);
 
             /*
             for (int x = 0; x < InputImage.Size.Width; x++)
@@ -250,6 +250,38 @@ namespace INFOIBV
                 }
             }
 
+            return result;
+        }
+
+        private int[,] edgeDetection(int[,] image)
+        {
+            int[,] horizontal = applyKernel(image, new float[,] {
+                {-1, -2, -1},
+                {0, 0, 0},
+                {1, 2, 1}
+            });
+            int[,] vertical = applyKernel(image, new float[,] {
+                {-1, 0, 1},
+                {-2, 0, 2},
+                {-1, 0, 1}
+            });
+
+            int[,] result = combine(horizontal, vertical, (x, y) => {
+                return (x + y) / 2;
+            });
+            return result;
+        }
+
+        public delegate int PixelArithmetic(int x, int y);
+
+        private int[,] combine(int[,] one, int[,] two, PixelArithmetic f)
+        {
+            int[,] result = new int[one.GetLength(0), one.GetLength(1)];
+            for(int x = 0; x < one.GetLength(0); x++) {
+                for(int y = 0; y < one.GetLength(1); y++) {
+                    result[x, y] = f(one[x, y], two[x, y]);
+                }
+            }
             return result;
         }
     }

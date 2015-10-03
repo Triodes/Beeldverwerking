@@ -75,13 +75,15 @@ namespace INFOIBV
             Image = applyKernel(Image, new float[,] {
                 {1/12f, -8/12f, 0, 8/12f, -1/12f},
             });*/
+            /*
             Image = opening(Image, new bool[,] { 
                 {true, true, true, true, true}, 
                 {true, true, true, true, true}, 
                 {true, true, true, true, true}, 
                 {true, true, true, true, true}, 
                 {true, true, true, true, true}
-            });
+            });*/
+            Image = threshold(Image, 128, 255, true);
 
             /*
             for (int x = 0; x < InputImage.Size.Width; x++)
@@ -225,6 +227,30 @@ namespace INFOIBV
         private int[,] closing(int[,] image, bool[,] s)
         {
             return erosion(dilation(image, s), s);
+        }
+
+        private int[,] threshold(int[,] image, int thresholdStart, int thresholdEnd, bool keep)
+        {
+            // Create a result image the size of the input image.
+            int[,] result = new int[image.GetLength(0), image.GetLength(1)];
+
+            // Loop over the center pixels for the kernel.
+            for(int x = 0; x < InputImage.Size.Width; x++) 
+            {
+                for(int y = 0; y < InputImage.Size.Height; y++) 
+                {
+                    int oldValue = image[x, y];
+                    if(oldValue > thresholdStart && oldValue < thresholdEnd)
+                        result[x, y] = int.MaxValue;
+                    else
+                        result[x,y] = keep ? oldValue : int.MinValue;
+
+                    // Clamp the result to ensure valid gray values.
+                    result[x, y] = Math.Min(Math.Max(result[x,y], 0), 255);
+                }
+            }
+
+            return result;
         }
     }
 }

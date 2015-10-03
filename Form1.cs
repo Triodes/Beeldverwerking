@@ -59,50 +59,67 @@ namespace INFOIBV
             }
 
             //==========================================================================================
-            // TODO: include here your own code
-            // example: create a negative image
-
-            // Sharpening
-            /*
-            Image = applyKernel(Image, new float[,] {
-                {-1, -1, -1},
-                {-1,  9, -1},
-                {-1, -1, -1}
-            });*/
-            // Derivative
-            /*
-            Image = applyKernel(Image, new float[,] {
-                {1/12f, -8/12f, 0, 8/12f, -1/12f},
-            });*/
-            /*
-            Image = opening(Image, new bool[,] { 
-                {true, true, true, true, true}, 
-                {true, true, true, true, true}, 
-                {true, true, true, true, true}, 
-                {true, true, true, true, true}, 
-                {true, true, true, true, true}
-            });*/
             Image = edgeDetection(Image);
             Image = compute(Image, (v) => Math.Abs(v));
             Image = normalize(Image, 255);
             Image = threshold(Image, 30, 255, false);
+            int[,] edges = Image;
             Image = houghLines(Image, 1);
             Image = normalize(Image, 255);
-            Image = threshold(Image, 128, 255, false);
+            Image = window(Image, 150, 255);
 
-            /*
+            // Find the first line.
+            List<Tuple<double,double>> lines = new List<Tuple<double,double>>();
+            for (int x = 0; x < Image.GetLength(0); x++)
+            {
+                for (int y = 0; y < Image.GetLength(1); y++)
+                {
+                    int value = Image[x, y];
+                    if(value == 0)
+                        continue;
+
+                    double angle = (x * Math.PI/180);
+                    double d = y - InputImage.Height;
+                    Console.WriteLine("Theta: " + angle + "   d: " + d);
+                    // FIXME: Limit amount of lines found
+                    lines.Add(Tuple.Create<double,double>(angle, d));
+                }
+            }
+            Console.WriteLine(lines.Count);
+
+
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height); // Create new output image
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
+                int[] lineYs = new int[lines.Count];
+                for(int i = 0; i < lines.Count; i++) {
+                    double angle = lines[i].Item1;
+                    double d = lines[i].Item2;
+                    lineYs[i] = (int)(d - (double)((x - InputImage.Width/2) * Math.Cos(angle)) / Math.Sin(angle)) + InputImage.Height/2;
+                }
+
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
-                    Color pixelColor = Image[x, y];                         // Get the pixel color at coordinate (x,y)
-                    Color updatedColor = Color.FromArgb(255 - pixelColor.R, 255 - pixelColor.G, 255 - pixelColor.B); // Negative image
-                    Image[x, y] = updatedColor;                             // Set the new pixel color at coordinate (x,y)
-                }
-				progressBar.PerformStep();                                  // Increment progress bar
-            }*/
-            //==========================================================================================
+                    bool found = false;
+                    foreach(int lineY in lineYs) {
+                        if(lineY != y)
+                            continue;
+                        
+                        OutputImage.SetPixel(x, y, Color.Purple);
+                        found = true;
+                        break;
+                    }
 
+                    if(!found)
+                    {
+                        int v = edges[x, y];
+                        OutputImage.SetPixel(x, y, Color.FromArgb(v,v,v));               // Set pixel color in array at (x,y)
+                    }
+                }
+            }
+
+            //==========================================================================================
+            /*
             // Copy array to output Bitmap
             Image = normalize(Image, 255);
             OutputImage = new Bitmap(Image.GetLength(0), Image.GetLength(1)); // Create new output image
@@ -113,7 +130,7 @@ namespace INFOIBV
                     int value = Image[x, y];
                     OutputImage.SetPixel(x, y, Color.FromArgb(value, value, value));               // Set the pixel color at coordinate (x,y)
                 }
-            }
+            }/**/
             
             pictureBox2.Image = (Image)OutputImage;                         // Display output image
             progressBar.Visible = false;                                    // Hide progress bar
@@ -155,10 +172,14 @@ namespace INFOIBV
                             int oldValue;
                             // Check the bounds, outside is black
                             if(x + kx < 0 || x + kx >= width
-                               || y + ky < 0 || y + ky >= height)
-                                oldValue = 0;
-                            else
+                               || y + ky < 0 || y + ky >= height) {
+                                // Perform not padding, not mirroring, but the other
+                                int ix = Math.Min(Math.Max(x + kx, 0), width - 1);
+                                int iy = Math.Min(Math.Max(y + ky, 0), height - 1);
+                                oldValue = image[ix, iy];
+                            } else {
                                 oldValue = image[x + kx, y + ky];
+                            }
 
                             newValue += (int)(weight * oldValue);
                         }
@@ -237,6 +258,30 @@ namespace INFOIBV
         private int[,] closing(int[,] image, bool[,] s)
         {
             return erosion(dilation(image, s), s);
+        }
+
+        private int[,] window(int[,] image, int start, int end) 
+        {
+            // Create a result image the size of the input image.
+            int width = image.GetLength(0);
+            int height = image.GetLength(1);
+            int[,] result = new int[width, height];
+
+            // Loop over the center pixels for the kernel.
+            for(int x = 0; x < width; x++) 
+            {
+                for(int y = 0; y < height; y++) 
+                {
+                    int value = image[x, y];
+                    if(value < start || value > end)
+                        value = 0;
+
+                    // Clamp the result to ensure valid gray values.
+                    result[x, y] = value;
+                }
+            }
+
+            return result;
         }
 
         private int[,] threshold(int[,] image, int thresholdStart, int thresholdEnd, bool keep)
@@ -345,19 +390,26 @@ namespace INFOIBV
 
         private int[,] houghLines(int[,] image, int stepSize) 
         {
-            int[,] result = new int[360, image.GetLength(1) * 2];
+            int width = image.GetLength(0);
+            int height = image.GetLength(1);
 
-            for(int x = 0; x < image.GetLength(0); x++) {
-                for(int y = 0; y < image.GetLength(1); y++) {
+            int[,] result = new int[180, height * 2];
+
+            for(int x = 0; x < width; x++) {
+                for(int y = 0; y < height; y++) {
                     int value = image[x, y];
-                    if(value < 128)
+                    if(value <= 0)
                         continue;
 
                     // Loop over the angles.
-                    for(int angle = 0; angle < 360; angle += stepSize) {
-                        int d = (int)((x - image.GetLength(0) / 2) * Math.Cos(angle * 0.017) + (y - image.GetLength(1)/2) * Math.Sin(angle * 0.017));
-                        d += image.GetLength(1);
-                        result[angle, d]++;
+                    for(int angle = 0; angle < 180; angle += stepSize) {
+                        double theta = angle * Math.PI / 180;
+                        int r = (int)(
+                            (x - width / 2) * Math.Cos(theta) + 
+                            (y - height /2) * Math.Sin(theta));
+                        r += height;
+
+                        result[angle, r]++;
                     }
                 }
             }
@@ -365,3 +417,4 @@ namespace INFOIBV
         }
     }
 }
+

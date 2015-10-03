@@ -59,14 +59,16 @@ namespace INFOIBV
             }
 
             //==========================================================================================
+            double stepSize = 0.5;
+
             Image = edgeDetection(Image);
             Image = compute(Image, (v) => Math.Abs(v));
             Image = normalize(Image, 255);
             Image = threshold(Image, 30, 255, false);
             int[,] edges = Image;
-            Image = houghLines(Image, 1);
+            Image = houghLines(Image, stepSize);
             Image = normalize(Image, 255);
-            Image = window(Image, 150, 255);
+            Image = window(Image, 200, 255);
 
             // Find the first line.
             List<Tuple<double,double>> lines = new List<Tuple<double,double>>();
@@ -78,8 +80,8 @@ namespace INFOIBV
                     if(value == 0)
                         continue;
 
-                    double angle = (x * Math.PI/180);
-                    double d = y - InputImage.Height;
+                    double angle = ((x * stepSize) * Math.PI/180);
+                    double d = y - 2 * InputImage.Height;
                     Console.WriteLine("Theta: " + angle + "   d: " + d);
                     // FIXME: Limit amount of lines found
                     lines.Add(Tuple.Create<double,double>(angle, d));
@@ -87,7 +89,7 @@ namespace INFOIBV
             }
             Console.WriteLine(lines.Count);
 
-
+            /**/
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height); // Create new output image
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
@@ -95,7 +97,7 @@ namespace INFOIBV
                 for(int i = 0; i < lines.Count; i++) {
                     double angle = lines[i].Item1;
                     double d = lines[i].Item2;
-                    lineYs[i] = (int)(d - (double)((x - InputImage.Width/2) * Math.Cos(angle)) / Math.Sin(angle)) + InputImage.Height/2;
+                    lineYs[i] = (int)((d - (double)x * Math.Cos(angle)) / Math.Sin(angle));
                 }
 
                 for (int y = 0; y < InputImage.Size.Height; y++)
@@ -117,9 +119,9 @@ namespace INFOIBV
                     }
                 }
             }
+            /** /
+            //===========================================================================================
 
-            //==========================================================================================
-            /*
             // Copy array to output Bitmap
             Image = normalize(Image, 255);
             OutputImage = new Bitmap(Image.GetLength(0), Image.GetLength(1)); // Create new output image
@@ -357,7 +359,7 @@ namespace INFOIBV
         private void findBounds(int[,] image, out int lower, out int upper) 
         {
             lower = 0;
-            upper = 255;
+            upper = 0;
 
             for(int x = 0; x < image.GetLength(0); x++) {
                 for(int y = 0; y < image.GetLength(1); y++) {
@@ -388,12 +390,12 @@ namespace INFOIBV
             return result;
         }
 
-        private int[,] houghLines(int[,] image, int stepSize) 
+        private int[,] houghLines(int[,] image, double stepSize) 
         {
             int width = image.GetLength(0);
             int height = image.GetLength(1);
 
-            int[,] result = new int[180, height * 2];
+            int[,] result = new int[(int)(180/stepSize), height * 4];
 
             for(int x = 0; x < width; x++) {
                 for(int y = 0; y < height; y++) {
@@ -402,12 +404,12 @@ namespace INFOIBV
                         continue;
 
                     // Loop over the angles.
-                    for(int angle = 0; angle < 180; angle += stepSize) {
-                        double theta = angle * Math.PI / 180;
+                    for(int angle = 0; angle < (int)(180/stepSize); angle++) {
+                        double theta = (angle * stepSize) * Math.PI / 180;
                         int r = (int)(
-                            (x - width / 2) * Math.Cos(theta) + 
-                            (y - height /2) * Math.Sin(theta));
-                        r += height;
+                            x * Math.Cos(theta) + 
+                            y * Math.Sin(theta));
+                        r += 2 * height;
 
                         result[angle, r]++;
                     }

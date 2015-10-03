@@ -29,7 +29,7 @@ namespace INFOIBV
                 if (InputImage != null) InputImage.Dispose();               // Reset image
                 InputImage = new Bitmap(file);                              // Create new Bitmap from file
                 if (InputImage.Size.Height <= 0 || InputImage.Size.Width <= 0 ||
-                    InputImage.Size.Height > 512 || InputImage.Size.Width > 512) // Dimension check
+                    InputImage.Size.Height > 1024 || InputImage.Size.Width > 1024) // Dimension check
                     MessageBox.Show("Error in image dimensions (have to be > 0 and <= 512)");
                 else
                     pictureBox1.Image = (Image) InputImage;                 // Display input image
@@ -40,7 +40,6 @@ namespace INFOIBV
         {
             if (InputImage == null) return;                                 // Get out if no input image
             if (OutputImage != null) OutputImage.Dispose();                 // Reset output image
-            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height); // Create new output image
             int[,] Image = new int[InputImage.Size.Width, InputImage.Size.Height]; // Create array to speed-up operations (Bitmap functions are very slow)
 
             // Setup progress bar
@@ -87,6 +86,9 @@ namespace INFOIBV
             Image = compute(Image, (v) => Math.Abs(v));
             Image = normalize(Image, 255);
             Image = threshold(Image, 30, 255, false);
+            Image = houghLines(Image, 1);
+            Image = normalize(Image, 255);
+            Image = threshold(Image, 128, 255, false);
 
             /*
             for (int x = 0; x < InputImage.Size.Width; x++)
@@ -103,14 +105,12 @@ namespace INFOIBV
 
             // Copy array to output Bitmap
             Image = normalize(Image, 255);
-            for (int x = 0; x < InputImage.Size.Width; x++)
+            OutputImage = new Bitmap(Image.GetLength(0), Image.GetLength(1)); // Create new output image
+            for (int x = 0; x < Image.GetLength(0); x++)
             {
-                for (int y = 0; y < InputImage.Size.Height; y++)
+                for (int y = 0; y < Image.GetLength(1); y++)
                 {
                     int value = Image[x, y];
-                    // Clamp value.
-                    //value = Math.Min(Math.Max(value, 0), 255);
-
                     OutputImage.SetPixel(x, y, Color.FromArgb(value, value, value));               // Set the pixel color at coordinate (x,y)
                 }
             }
@@ -129,7 +129,9 @@ namespace INFOIBV
         private int[,] applyKernel(int[,] image, float[,] kernel) 
         {
             // Create a result image the size of the input image.
-            int[,] result = new int[image.GetLength(0), image.GetLength(1)];
+            int width = image.GetLength(0);
+            int height = image.GetLength(1);
+            int[,] result = new int[width, height];
             // Determine the size and center of the kernel
             int kwidth = kernel.GetLength(0);
             int kheight = kernel.GetLength(1);
@@ -137,9 +139,9 @@ namespace INFOIBV
             int hh = kheight / 2;
 
             // Loop over the center pixels for the kernel.
-            for (int x = 0; x < InputImage.Size.Width; x++)
+            for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < InputImage.Size.Height; y++)
+                for (int y = 0; y < height; y++)
                 {
                     // Variable holding the new value in the result.
                     int newValue = 0;
@@ -152,8 +154,8 @@ namespace INFOIBV
                             float weight = kernel[kx + hw, ky + hh];
                             int oldValue;
                             // Check the bounds, outside is black
-                            if(x + kx < 0 || x + kx >= image.GetLength(0)
-                               || y + ky < 0 || y + ky >= image.GetLength(1))
+                            if(x + kx < 0 || x + kx >= width
+                               || y + ky < 0 || y + ky >= height)
                                 oldValue = 0;
                             else
                                 oldValue = image[x + kx, y + ky];
@@ -172,7 +174,9 @@ namespace INFOIBV
         private int[,] erosionDilation(int[,] image, bool[,] s, bool erosion) 
         {
             // Create a result image the size of the input image.
-            int[,] result = new int[image.GetLength(0), image.GetLength(1)];
+            int width = image.GetLength(0);
+            int height = image.GetLength(1);
+            int[,] result = new int[width, height];
             // Determine the size and center of the kernel
             int kwidth = s.GetLength(0);
             int kheight = s.GetLength(1);
@@ -180,9 +184,9 @@ namespace INFOIBV
             int hh = kheight / 2;
 
             // Loop over the center pixels for the kernel.
-            for (int x = 0; x < InputImage.Size.Width; x++)
+            for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < InputImage.Size.Height; y++)
+                for (int y = 0; y < height; y++)
                 {
                     // Variable holding the new value in the result.
                     int newValue = erosion ? int.MaxValue : int.MinValue;
@@ -197,8 +201,8 @@ namespace INFOIBV
 
                             int oldValue;
                             // Check the bounds, outside is black
-                            if(x + kx < 0 || x + kx >= image.GetLength(0)
-                                || y + ky < 0 || y + ky >= image.GetLength(1))
+                            if(x + kx < 0 || x + kx >= width
+                                || y + ky < 0 || y + ky >= height)
                                 oldValue = 0;
                             else
                                 oldValue = image[x + kx, y + ky];
@@ -238,12 +242,14 @@ namespace INFOIBV
         private int[,] threshold(int[,] image, int thresholdStart, int thresholdEnd, bool keep)
         {
             // Create a result image the size of the input image.
-            int[,] result = new int[image.GetLength(0), image.GetLength(1)];
+            int width = image.GetLength(0);
+            int height = image.GetLength(1);
+            int[,] result = new int[width, height];
 
             // Loop over the center pixels for the kernel.
-            for(int x = 0; x < InputImage.Size.Width; x++) 
+            for(int x = 0; x < width; x++) 
             {
-                for(int y = 0; y < InputImage.Size.Height; y++) 
+                for(int y = 0; y < height; y++) 
                 {
                     int oldValue = image[x, y];
                     if(oldValue > thresholdStart && oldValue < thresholdEnd)
@@ -324,9 +330,7 @@ namespace INFOIBV
             int lower, upper;
             findBounds(image, out lower, out upper);
 
-            Console.WriteLine(lower + "  -  " + upper);
             float scale = (float)max / (upper - lower);
-            Console.WriteLine(scale);
             int[,] result = new int[image.GetLength(0), image.GetLength(1)];
 
             for(int x = 0; x < image.GetLength(0); x++) {
@@ -336,6 +340,27 @@ namespace INFOIBV
                 }
             }
 
+            return result;
+        }
+
+        private int[,] houghLines(int[,] image, int stepSize) 
+        {
+            int[,] result = new int[360, image.GetLength(1) * 2];
+
+            for(int x = 0; x < image.GetLength(0); x++) {
+                for(int y = 0; y < image.GetLength(1); y++) {
+                    int value = image[x, y];
+                    if(value < 128)
+                        continue;
+
+                    // Loop over the angles.
+                    for(int angle = 0; angle < 360; angle += stepSize) {
+                        int d = (int)((x - image.GetLength(0) / 2) * Math.Cos(angle * 0.017) + (y - image.GetLength(1)/2) * Math.Sin(angle * 0.017));
+                        d += image.GetLength(1);
+                        result[angle, d]++;
+                    }
+                }
+            }
             return result;
         }
     }

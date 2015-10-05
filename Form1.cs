@@ -76,39 +76,11 @@ namespace INFOIBV
             Image = window(Image, 120, 255);
 
             // Find the first line.
-            SortedSet<Tuple<double,double>> lines = new SortedSet<Tuple<double,double>>();
-            for (int x = 0; x < Image.GetLength(0); x++)
-            {
-                for (int y = 0; y < Image.GetLength(1); y++)
-                {
-                    int value = Image[x, y];
-                    if(value == 0)
-                        continue;
-
-                    double angle = ((x * stepSize) * Math.PI/180);
-                    double d = y - 2 * InputImage.Height;
-                    Console.WriteLine("Theta: " + angle + "   d: " + d);
-                    // FIXME: Limit amount of lines found
-                    lines.Add(Tuple.Create<double,double>(angle, d));
-                }
-            }
+            SortedSet<Tuple<double,double>> lines = findLines(Image, stepSize);
             lines = filterLines(lines);
             Console.WriteLine(lines.Count);
             // Find perpendicular lines.
-            List<Tuple<Tuple<double, double>,Tuple<double,double>>> pairs = new List<Tuple<Tuple<double, double>,Tuple<double,double>>>();
-            foreach(var one in lines) {
-                foreach(var two in lines) {
-                    if(one == two)
-                        continue;
-
-                    if(Math.Abs(Math.Abs(one.Item1 - two.Item1) - Math.PI / 2) <= 0.2) {
-                        if(one.Item1 < two.Item1)
-                            pairs.Add(Tuple.Create(one, two));
-                        else
-                            pairs.Add(Tuple.Create(two, one));
-                    }
-                }   
-            }
+            List<Tuple<Tuple<double, double>,Tuple<double,double>>> pairs = findPerpendicular(lines);
             Console.WriteLine("Pairs: " + pairs.Count);
             // Find squares.
             lines.Clear();
@@ -126,14 +98,15 @@ namespace INFOIBV
                         lines.Add(two.Item1);
                         lines.Add(two.Item2);
 
-                        Console.WriteLine("Square: " +  Math.Abs(one.Item1.Item2 - two.Item1.Item2) + "x" + Math.Abs(one.Item2.Item2 - two.Item2.Item2));
+                        double bw = Math.Abs(one.Item1.Item2 - two.Item1.Item2);
+                        double bh = Math.Abs(one.Item2.Item2 - two.Item2.Item2);
+                        Console.WriteLine("Square: " + bw + "x" + bh + " (" + (bh/bw) + ")");
                         goto done;
                     }
                 }
             }
             done:
             Console.WriteLine(lines.Count);
-
 
             /**/
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height); // Create new output image
@@ -193,6 +166,28 @@ namespace INFOIBV
                 OutputImage.Save(saveImageDialog.FileName);                 // Save the output image
         }
 
+        private SortedSet<Tuple<double,double>> findLines(int[,] image, double stepSize) 
+        {
+            SortedSet<Tuple<double,double>> result = new SortedSet<Tuple<double,double>>();
+            for (int x = 0; x < image.GetLength(0); x++)
+            {
+                for (int y = 0; y < image.GetLength(1); y++)
+                {
+                    int value = image[x, y];
+                    if(value == 0)
+                        continue;
+
+                    double angle = ((x * stepSize) * Math.PI/180);
+                    double d = y - 2 * InputImage.Height;
+                    Console.WriteLine("Theta: " + angle + "   d: " + d);
+                    // FIXME: Limit amount of lines found
+                    result.Add(Tuple.Create<double,double>(angle, d));
+                }
+            }
+
+            return result;
+        }
+
         private SortedSet<Tuple<double,double>> filterLines(SortedSet<Tuple<double,double>> lines) 
         {
             SortedSet<Tuple<double,double>> result = new SortedSet<Tuple<double,double>>();
@@ -209,6 +204,26 @@ namespace INFOIBV
                 prevLine = line;
             }
 
+            return result;
+        }
+
+        private List<Tuple<Tuple<double, double>,Tuple<double,double>>> findPerpendicular(SortedSet<Tuple<double,double>> lines) 
+        {
+            List<Tuple<Tuple<double, double>,Tuple<double,double>>> result = new List<Tuple<Tuple<double, double>,Tuple<double,double>>>();
+            foreach(var one in lines) {
+                foreach(var two in lines) {
+                    if(one == two)
+                        continue;
+
+                    if(Math.Abs(Math.Abs(one.Item1 - two.Item1) - Math.PI / 2) <= 0.2) {
+                        // Ensure first one has the lowest angle.
+                        if(one.Item1 < two.Item1)
+                            result.Add(Tuple.Create(one, two));
+                        else
+                            result.Add(Tuple.Create(two, one));
+                    }
+                }   
+            }
             return result;
         }
 

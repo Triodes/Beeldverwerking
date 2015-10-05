@@ -29,7 +29,7 @@ namespace INFOIBV
                 if (InputImage != null) InputImage.Dispose();               // Reset image
                 InputImage = new Bitmap(file);                              // Create new Bitmap from file
                 if (InputImage.Size.Height <= 0 || InputImage.Size.Width <= 0 ||
-                    InputImage.Size.Height > 1024 || InputImage.Size.Width > 1024) // Dimension check
+                    InputImage.Size.Height > 2048 || InputImage.Size.Width > 2048) // Dimension check
                     MessageBox.Show("Error in image dimensions (have to be > 0 and <= 512)");
                 else
                     pictureBox1.Image = (Image) InputImage;                 // Display input image
@@ -107,6 +107,36 @@ namespace INFOIBV
             }
             done:
             Console.WriteLine(lines.Count);
+            // Make everything outside square black.
+            if(lines.Count == 5)
+            {
+                Console.WriteLine(lines.First().Item1 + " " + lines.First().Item2);
+                int i = 0;
+                foreach(var line in lines) {
+                    double theta = line.Item1;
+                    double lineR = line.Item2;
+                    for(int x = 0; x < edges.GetLength(0); x++) {
+                        for(int y = 0; y < edges.GetLength(1); y++) {
+                            int r = (int)(
+                                        x * Math.Cos(theta) +
+                                        y * Math.Sin(theta));
+                            if(i % 2 == 0) {
+                                if(r <= lineR) {
+                                    edges[x, y] = 0;
+                                }
+                            } else {
+                                if(r >= lineR) {
+                                    edges[x, y] = 0;
+                                }
+                            }
+                                
+                        }
+                    }
+                    i++;
+                    if(i == 4)
+                        break;
+                }
+            }
 
             /**/
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height); // Create new output image

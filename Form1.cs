@@ -59,19 +59,24 @@ namespace INFOIBV
             }
 
             //==========================================================================================
-            double stepSize = 0.5;
+            double stepSize = 1;
 
             Image = edgeDetection(Image);
             Image = compute(Image, (v) => Math.Abs(v));
             Image = normalize(Image, 255);
-            Image = threshold(Image, 30, 255, false);
+            Image = threshold(Image, 15, 255, false);
+            Image = closing(Image, new bool[,] {
+                {true, true, true},
+                {true, true, true},
+                {true, true, true}
+            });
             int[,] edges = Image;
             Image = houghLines(Image, stepSize);
             Image = normalize(Image, 255);
-            Image = window(Image, 200, 255);
+            Image = window(Image, 120, 255);
 
             // Find the first line.
-            List<Tuple<double,double>> lines = new List<Tuple<double,double>>();
+            SortedSet<Tuple<double,double>> lines = new SortedSet<Tuple<double,double>>();
             for (int x = 0; x < Image.GetLength(0); x++)
             {
                 for (int y = 0; y < Image.GetLength(1); y++)
@@ -87,17 +92,60 @@ namespace INFOIBV
                     lines.Add(Tuple.Create<double,double>(angle, d));
                 }
             }
+            lines = filterLines(lines);
             Console.WriteLine(lines.Count);
+            // Find perpendicular lines.
+            List<Tuple<Tuple<double, double>,Tuple<double,double>>> pairs = new List<Tuple<Tuple<double, double>,Tuple<double,double>>>();
+            foreach(var one in lines) {
+                foreach(var two in lines) {
+                    if(one == two)
+                        continue;
+
+                    if(Math.Abs(Math.Abs(one.Item1 - two.Item1) - Math.PI / 2) <= 0.2) {
+                        if(one.Item1 < two.Item1)
+                            pairs.Add(Tuple.Create(one, two));
+                        else
+                            pairs.Add(Tuple.Create(two, one));
+                    }
+                }   
+            }
+            Console.WriteLine("Pairs: " + pairs.Count);
+            // Find squares.
+            lines.Clear();
+            foreach(var one in pairs) {
+                foreach(var two in pairs) {
+                    if(one == two)
+                        continue;
+
+                    if(Math.Abs(one.Item1.Item1 - two.Item1.Item1) <= 0.1
+                       && Math.Abs(one.Item2.Item1 - two.Item2.Item1) <= 0.1
+                        && Math.Abs(one.Item1.Item2 - two.Item1.Item2) > 20
+                        && Math.Abs(one.Item2.Item2 - two.Item2.Item2) > 20) {
+                        lines.Add(one.Item1);
+                        lines.Add(one.Item2);
+                        lines.Add(two.Item1);
+                        lines.Add(two.Item2);
+
+                        Console.WriteLine("Square: " +  Math.Abs(one.Item1.Item2 - two.Item1.Item2) + "x" + Math.Abs(one.Item2.Item2 - two.Item2.Item2));
+                        goto done;
+                    }
+                }
+            }
+            done:
+            Console.WriteLine(lines.Count);
+
 
             /**/
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height); // Create new output image
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
                 int[] lineYs = new int[lines.Count];
-                for(int i = 0; i < lines.Count; i++) {
-                    double angle = lines[i].Item1;
-                    double d = lines[i].Item2;
+                int i = 0;
+                foreach(var line in lines) {
+                    double angle = line.Item1;
+                    double d = line.Item2;
                     lineYs[i] = (int)((d - (double)x * Math.Cos(angle)) / Math.Sin(angle));
+                    i++;
                 }
 
                 for (int y = 0; y < InputImage.Size.Height; y++)
@@ -143,6 +191,25 @@ namespace INFOIBV
             if (OutputImage == null) return;                                // Get out if no output image
             if (saveImageDialog.ShowDialog() == DialogResult.OK)
                 OutputImage.Save(saveImageDialog.FileName);                 // Save the output image
+        }
+
+        private SortedSet<Tuple<double,double>> filterLines(SortedSet<Tuple<double,double>> lines) 
+        {
+            SortedSet<Tuple<double,double>> result = new SortedSet<Tuple<double,double>>();
+            Tuple<double,double> prevLine = null;
+            foreach(var line in lines) {
+                if(prevLine != null) {
+                    if(Math.Abs(prevLine.Item1 - line.Item1) > 5
+                       || Math.Abs(prevLine.Item2 - line.Item2) > 5) {
+                        result.Add(line);
+                    }
+                } else {
+                    result.Add(line);
+                }
+                prevLine = line;
+            }
+
+            return result;
         }
 
         private int[,] applyKernel(int[,] image, float[,] kernel) 
@@ -397,6 +464,7 @@ namespace INFOIBV
 
             int[,] result = new int[(int)(180/stepSize), height * 4];
 
+            Random random = new Random();
             for(int x = 0; x < width; x++) {
                 for(int y = 0; y < height; y++) {
                     int value = image[x, y];
@@ -405,10 +473,19 @@ namespace INFOIBV
 
                     // Loop over the angles.
                     for(int angle = 0; angle < (int)(180/stepSize); angle++) {
-                        double theta = (angle * stepSize) * Math.PI / 180;
-                        int r = (int)(
-                            x * Math.Cos(theta) + 
-                            y * Math.Sin(theta));
+                        double theta = (angle * stepSize) * Math.PI / 180.0;
+
+                        int r;
+                        if(angle == 45 / stepSize) {
+                            r = (int)((x + y) / Math.Sqrt(2) + random.NextDouble());
+                        } else if(angle == 135 / stepSize) {
+                            r = (int)((y - x) / Math.Sqrt(2) + random.NextDouble());
+                        } else {
+                            r = (int)(
+                                x * Math.Cos(theta) + 
+                                y * Math.Sin(theta));
+                        }
+                        if(r == 0) continue;
                         r += 2 * height;
 
                         result[angle, r]++;

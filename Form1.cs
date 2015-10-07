@@ -28,11 +28,7 @@ namespace INFOIBV
                 imageFileName.Text = openImageDialog.FileName;
                 if (inputImage != null) inputImage.Dispose();
                 inputImage = new Bitmap(imageFileName.Text);
-                if (inputImage.Size.Height <= 0 || inputImage.Size.Width <= 0 ||
-                    inputImage.Size.Height > 2048 || inputImage.Size.Width > 2048)
-                    MessageBox.Show("Error in image dimensions (have to be > 0 and <= 2048)");
-                else
-                    pictureBox1.Image = (Image) inputImage;
+                pictureBox1.Image = (Image) inputImage;
             }
         }
 
@@ -75,7 +71,7 @@ namespace INFOIBV
             List<Tuple<Tuple<double, double>,Tuple<double,double>>> pairs = findPerpendicular(lines);
             Console.WriteLine("Pairs: " + pairs.Count);
             // Find squares.
-            lines.Clear();
+            //lines.Clear();
             foreach(var one in pairs) {
                 foreach(var two in pairs) {
                     if(one == two)
@@ -267,12 +263,13 @@ namespace INFOIBV
                         double theta = (angle * stepSize) * Math.PI / 180.0;
 
                         int r;
-                        if(angle == 45 / stepSize) {
-                            r = (int)((x + y) / Math.Sqrt(2) + random.NextDouble());
-                        } else if(angle == 135 / stepSize) {
-                            r = (int)((y - x) / Math.Sqrt(2) + random.NextDouble());
-                        } else {
-                            r = (int)(
+                        //if(angle == 45 / stepSize) {
+                        //    r = (int)((x + y) / Math.Sqrt(2) + random.NextDouble());
+                        //} else if(angle == 135 / stepSize) {
+                        //    r = (int)((y - x) / Math.Sqrt(2) + random.NextDouble());
+                        //} else 
+                        {
+                            r = (int)Math.Round(
                                 x * Math.Cos(theta) + 
                                 y * Math.Sin(theta));
                         }

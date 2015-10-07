@@ -70,7 +70,7 @@
             this.pictureBox1.Location = new System.Drawing.Point(13, 45);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(512, 512);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;//.CenterImage;
             this.pictureBox1.TabIndex = 2;
             this.pictureBox1.TabStop = false;
             // 
@@ -104,7 +104,7 @@
             this.pictureBox2.Location = new System.Drawing.Point(531, 45);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(512, 512);
-            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;//.CenterImage;
             this.pictureBox2.TabIndex = 5;
             this.pictureBox2.TabStop = false;
             // 

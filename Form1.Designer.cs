@@ -82,7 +82,7 @@
             this.applyButton.TabIndex = 3;
             this.applyButton.Text = "Apply";
             this.applyButton.UseVisualStyleBackColor = true;
-            this.applyButton.Click += new System.EventHandler(this.applyButton_Click);
+            this.applyButton.Click += new System.EventHandler(this.ApplyButton_Click);
             // 
             // saveImageDialog
             // 

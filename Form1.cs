@@ -57,6 +57,8 @@ namespace INFOIBV
             image = new Hough().Compute(image, stepSize);
             image = Defaults.Normalize(image,255);
             image = new Window(120, 255).Compute(image);
+            int maxVal = (int)Math.Ceiling(Math.Sqrt(edges.GetLength(0) * edges.GetLength(0) + edges.GetLength(1) * edges.GetLength(0)));
+            findLines(image, stepSize, maxVal);
 
             //// Find the first line.
             //SortedSet<Tuple<double,double>> lines = findLines(image, stepSize);
@@ -172,13 +174,12 @@ namespace INFOIBV
                 outputImage.Save(saveImageDialog.FileName);                 // Save the output image
         }
 
-        private SortedSet<Tuple<double,double>> findLines(int[,] image, double stepSize) 
+        private SortedSet<Tuple<double,double, int>> findLines(int[,] image, double stepSize, int maxVal) 
         {
-            SortedSet<Tuple<double,double>> result = new SortedSet<Tuple<double,double>>();
+            SortedSet<Tuple<double,double,int>> result = new SortedSet<Tuple<double,double,int>>();
 
             int width = image.GetLength(0);
             int height = image.GetLength(1);
-            int maxVal = (int)Math.Ceiling(Math.Sqrt(width * width + height * height));
 
             for (int step = 0; step < width; step++)
             {
@@ -190,8 +191,8 @@ namespace INFOIBV
 
                     double angle = ((step * stepSize) * Math.PI/180.0);
                     double d = r - maxVal;
-                    Console.WriteLine("Angle: {0}, r: {1}",angle, d);
-                    result.Add(new Tuple<double,double>(angle, d));
+                    //Console.WriteLine("Angle: {0}, r: {1}",angle, d);
+                    result.Add(new Tuple<double,double,int>(angle, d, value));
                 }
             }
 
@@ -201,14 +202,18 @@ namespace INFOIBV
         private SortedSet<Tuple<double,double>> filterLines(SortedSet<Tuple<double,double>> lines) 
         {
             SortedSet<Tuple<double,double>> result = new SortedSet<Tuple<double,double>>();
-            Tuple<double,double> prevLine = null;
-            foreach(var line in lines) {
-                if(prevLine != null) {
-                    if(Math.Abs(prevLine.Item1 - line.Item1) > 5
-                       || Math.Abs(prevLine.Item2 - line.Item2) > 5) {
+            Tuple<double, double> prevLine = null;
+            foreach (var line in lines)
+            {
+                if (prevLine != null)
+                {
+                    if (Math.Abs(prevLine.Item1 - line.Item1) > 5 || Math.Abs(prevLine.Item2 - line.Item2) > 5)
+                    {
                         result.Add(line);
                     }
-                } else {
+                }
+                else
+                {
                     result.Add(line);
                 }
                 prevLine = line;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace INFOIBV.ImageOperations
 {
@@ -22,39 +23,39 @@ namespace INFOIBV.ImageOperations
             int halfKHeight = kHeight / 2;
 
             // Loop over the center pixels for the kernel.
-            for (int x = 0; x < width; x++)
+            Parallel.For(0, width * height, i =>
             {
-                for (int y = 0; y < height; y++)
+                int x = i % width;
+                int y = i / width;
+                // Variable holding the new value in the result.
+                int newValue = 0;
+
+                // Go over the kernel
+                for (int kx = -halfKWidth; kx <= halfKWidth; kx++)
                 {
-                    // Variable holding the new value in the result.
-                    int newValue = 0;
-
-                    // Go over the kernel
-                    for (int kx = -halfKWidth; kx <= halfKWidth; kx++)
+                    for (int ky = -halfKHeight; ky <= halfKHeight; ky++)
                     {
-                        for (int ky = -halfKHeight; ky <= halfKHeight; ky++)
+                        float weight = kernel[kx + halfKWidth, ky + halfKHeight];
+                        int oldValue;
+                        if (x + kx < 0 || x + kx >= width || y + ky < 0 || y + ky >= height)
                         {
-                            float weight = kernel[kx + halfKWidth, ky + halfKHeight];
-                            int oldValue;
-                            if (x + kx < 0 || x + kx >= width || y + ky < 0 || y + ky >= height)
-                            {
-                                // Perform not padding, not mirroring, but the other
-                                int ix = Clamp(x + kx, 0, width - 1);
-                                int iy = Clamp(y + ky, 0, height - 1);
-                                oldValue = image[ix, iy];
-                            }
-                            else
-                            {
-                                oldValue = image[x + kx, y + ky];
-                            }
-
-                            newValue += (int)(weight * oldValue);
+                            // Perform not padding, not mirroring, but the other
+                            int ix = Clamp(x + kx, 0, width - 1);
+                            int iy = Clamp(y + ky, 0, height - 1);
+                            oldValue = image[ix, iy];
+                        }
+                        else
+                        {
+                            oldValue = image[x + kx, y + ky];
                         }
 
-                        result[x, y] = newValue;
+                        newValue += (int)(weight * oldValue);
                     }
+
+                    result[x, y] = newValue;
                 }
-            }
+
+            });
 
             return result;
         }
@@ -65,26 +66,26 @@ namespace INFOIBV.ImageOperations
         public static int[,] Combine(int[,] one, int[,] two, PixelArithmetic f)
         {
             int[,] result = new int[one.GetLength(0), one.GetLength(1)];
-            for (int x = 0; x < one.GetLength(0); x++)
+            Parallel.For(0, one.GetLength(0) * one.GetLength(1), i =>
             {
-                for (int y = 0; y < one.GetLength(1); y++)
-                {
-                    result[x, y] = f(one[x, y], two[x, y]);
-                }
-            }
+                int x = i % one.GetLength(0);
+                int y = i / one.GetLength(0);
+
+                result[x, y] = f(one[x, y], two[x, y]);
+            });
             return result;
         }
 
         public static int[,] Compute(int[,] image, PixelArithmeticOne f)
         {
             int[,] result = new int[image.GetLength(0), image.GetLength(1)];
-            for (int x = 0; x < image.GetLength(0); x++)
+            Parallel.For(0, image.GetLength(0) * image.GetLength(1), i =>
             {
-                for (int y = 0; y < image.GetLength(1); y++)
-                {
-                    result[x, y] = f(image[x, y]);
-                }
-            }
+                int x = i % image.GetLength(0);
+                int y = i / image.GetLength(0);
+
+                result[x, y] = f(image[x, y]);
+            });
             return result;
         }
 
@@ -114,14 +115,14 @@ namespace INFOIBV.ImageOperations
             float scale = (float)max / (upper - lower);
             int[,] result = new int[image.GetLength(0), image.GetLength(1)];
 
-            for (int x = 0; x < image.GetLength(0); x++)
+            Parallel.For(0, image.GetLength(0) * image.GetLength(1), i =>
             {
-                for (int y = 0; y < image.GetLength(1); y++)
-                {
-                    int value = image[x, y];
-                    result[x, y] = (int)((value - lower) * scale);
-                }
-            }
+                int x = i % image.GetLength(0);
+                int y = i / image.GetLength(0);
+                int value = image[x, y];
+                result[x, y] = (int)((value - lower) * scale);
+
+            });
 
             return result;
         }

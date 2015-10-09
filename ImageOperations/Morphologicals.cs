@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace INFOIBV.ImageOperations
 {
@@ -20,37 +21,37 @@ namespace INFOIBV.ImageOperations
             int hh = kheight / 2;
 
             // Loop over the center pixels for the kernel.
-            for (int x = 0; x < width; x++)
+            Parallel.For(0, width * height, i =>
             {
-                for (int y = 0; y < height; y++)
+                int x = i % width;
+                int y = i / width;
+                // Variable holding the new value in the result.
+                int newValue = erosion ? int.MaxValue : int.MinValue;
+
+                // Go over the kernel
+                for (int kx = -hw; kx <= hw; kx++)
                 {
-                    // Variable holding the new value in the result.
-                    int newValue = erosion ? int.MaxValue : int.MinValue;
-
-                    // Go over the kernel
-                    for (int kx = -hw; kx <= hw; kx++)
+                    for (int ky = -hh; ky <= hh; ky++)
                     {
-                        for (int ky = -hh; ky <= hh; ky++)
-                        {
-                            if (!s[kx + hw, ky + hh])
-                                continue;
+                        if (!s[kx + hw, ky + hh])
+                            continue;
 
-                            int oldValue;
-                            // Check the bounds, outside is black
-                            if (x + kx < 0 || x + kx >= width
-                                || y + ky < 0 || y + ky >= height)
-                                oldValue = 0;
-                            else
-                                oldValue = image[x + kx, y + ky];
+                        int oldValue;
+                        // Check the bounds, outside is black
+                        if (x + kx < 0 || x + kx >= width
+                            || y + ky < 0 || y + ky >= height)
+                            oldValue = 0;
+                        else
+                            oldValue = image[x + kx, y + ky];
 
-                            newValue = erosion ? Math.Min(oldValue, newValue) : Math.Max(oldValue, newValue);
-                        }
+                        newValue = erosion ? Math.Min(oldValue, newValue) : Math.Max(oldValue, newValue);
                     }
-
-                    // Clamp the result to ensure valid gray values.
-                    result[x, y] = Math.Min(Math.Max(newValue, 0), 255);
                 }
-            }
+
+                // Clamp the result to ensure valid gray values.
+                result[x, y] = Math.Min(Math.Max(newValue, 0), 255);
+
+            });
 
             return result;
         }

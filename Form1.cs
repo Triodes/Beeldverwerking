@@ -8,6 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using INFOIBV.ImageOperations;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace INFOIBV
 {
@@ -44,89 +46,83 @@ namespace INFOIBV
             //progressBar.Value = 1;
             //progressBar.Step = 1;
 
-            int[,] image = new Grayscale().Compute(inputImage);
+            int[,] image = new Grayscale().FromBitmap(inputImage);
 
             //==========================================================================================
-            double stepSize = 1;
+            double stepSize = 0.25;
 
             image = new Sobel().Compute(image);
             image = Defaults.Compute(image, (v) => Math.Abs(v));
-            image = Defaults.Normalize(image, 255);
-            image = new Threshold(15).Compute(image);
-            image = Morphologicals.Closing(image, new bool[,] {
-                {true, true, true},
-                {true, true, true},
-                {true, true, true}
-            });
             int[,] edges = image;
-            image = houghLines(image, stepSize);
-            image = Defaults.Normalize(image, 255);
+            image = new Hough().Compute(image, stepSize);
+            image = Defaults.Normalize(image,255);
             image = new Window(120, 255).Compute(image);
 
-            // Find the first line.
-            SortedSet<Tuple<double,double>> lines = findLines(image, stepSize);
-            lines = filterLines(lines);
-            Console.WriteLine(lines.Count);
-            // Find perpendicular lines.
-            List<Tuple<Tuple<double, double>,Tuple<double,double>>> pairs = findPerpendicular(lines);
-            Console.WriteLine("Pairs: " + pairs.Count);
+            //// Find the first line.
+            //SortedSet<Tuple<double,double>> lines = findLines(image, stepSize);
+            ////lines = filterLines(lines);
+            //Console.WriteLine(lines.Count);
+            //// Find perpendicular lines.
+            //List<Tuple<Tuple<double, double>,Tuple<double,double>>> pairs = findPerpendicular(lines);
+            //Console.WriteLine("Pairs: " + pairs.Count);
+
             // Find squares.
             //lines.Clear();
-            foreach(var one in pairs) {
-                foreach(var two in pairs) {
-                    if(one == two)
-                        continue;
+            //foreach(var one in pairs) {
+            //    foreach(var two in pairs) {
+            //        if(one == two)
+            //            continue;
 
-                    if(Math.Abs(one.Item1.Item1 - two.Item1.Item1) <= 0.1
-                       && Math.Abs(one.Item2.Item1 - two.Item2.Item1) <= 0.1
-                        && Math.Abs(one.Item1.Item2 - two.Item1.Item2) > 20
-                        && Math.Abs(one.Item2.Item2 - two.Item2.Item2) > 20) {
-                        lines.Add(one.Item1);
-                        lines.Add(one.Item2);
-                        lines.Add(two.Item1);
-                        lines.Add(two.Item2);
+            //        if(Math.Abs(one.Item1.Item1 - two.Item1.Item1) <= 0.1
+            //           && Math.Abs(one.Item2.Item1 - two.Item2.Item1) <= 0.1
+            //            && Math.Abs(one.Item1.Item2 - two.Item1.Item2) > 20
+            //            && Math.Abs(one.Item2.Item2 - two.Item2.Item2) > 20) {
+            //            lines.Add(one.Item1);
+            //            lines.Add(one.Item2);
+            //            lines.Add(two.Item1);
+            //            lines.Add(two.Item2);
 
-                        double bw = Math.Abs(one.Item1.Item2 - two.Item1.Item2);
-                        double bh = Math.Abs(one.Item2.Item2 - two.Item2.Item2);
-                        Console.WriteLine("Square: " + bw + "x" + bh + " (" + (bh/bw) + ")");
-                        goto done;
-                    }
-                }
-            }
-            done:
-            Console.WriteLine(lines.Count);
-            // Make everything outside square black.
-            if(lines.Count == 5)
-            {
-                Console.WriteLine(lines.First().Item1 + " " + lines.First().Item2);
-                int i = 0;
-                foreach(var line in lines) {
-                    double theta = line.Item1;
-                    double lineR = line.Item2;
-                    for(int x = 0; x < edges.GetLength(0); x++) {
-                        for(int y = 0; y < edges.GetLength(1); y++) {
-                            int r = (int)(
-                                        x * Math.Cos(theta) +
-                                        y * Math.Sin(theta));
-                            if(i % 2 == 0) {
-                                if(r <= lineR) {
-                                    edges[x, y] = 0;
-                                }
-                            } else {
-                                if(r >= lineR) {
-                                    edges[x, y] = 0;
-                                }
-                            }
+            //            double bw = Math.Abs(one.Item1.Item2 - two.Item1.Item2);
+            //            double bh = Math.Abs(one.Item2.Item2 - two.Item2.Item2);
+            //            Console.WriteLine("Square: " + bw + "x" + bh + " (" + (bh/bw) + ")");
+            //            goto done;
+            //        }
+            //    }
+            //}
+            //done:
+            //Console.WriteLine(lines.Count);
+            //// Make everything outside square black.
+            //if(lines.Count == 5)
+            //{
+            //    Console.WriteLine(lines.First().Item1 + " " + lines.First().Item2);
+            //    int i = 0;
+            //    foreach(var line in lines) {
+            //        double theta = line.Item1;
+            //        double lineR = line.Item2;
+            //        for(int x = 0; x < edges.GetLength(0); x++) {
+            //            for(int y = 0; y < edges.GetLength(1); y++) {
+            //                int r = (int)(
+            //                            x * Math.Cos(theta) +
+            //                            y * Math.Sin(theta));
+            //                if(i % 2 == 0) {
+            //                    if(r <= lineR) {
+            //                        edges[x, y] = 0;
+            //                    }
+            //                } else {
+            //                    if(r >= lineR) {
+            //                        edges[x, y] = 0;
+            //                    }
+            //                }
                                 
-                        }
-                    }
-                    i++;
-                    if(i == 4)
-                        break;
-                }
-            }
+            //            }
+            //        }
+            //        i++;
+            //        if(i == 4)
+            //            break;
+            //    }
+            //}
 
-            /**/
+            /** /
             outputImage = new Bitmap(inputImage.Size.Width, inputImage.Size.Height); // Create new output image
             for (int x = 0; x < inputImage.Size.Width; x++)
             {
@@ -161,20 +157,12 @@ namespace INFOIBV
             /** /
             //===========================================================================================
 
-            // Copy array to output Bitmap
-            Image = normalize(Image, 255);
-            OutputImage = new Bitmap(Image.GetLength(0), Image.GetLength(1)); // Create new output image
-            for (int x = 0; x < Image.GetLength(0); x++)
-            {
-                for (int y = 0; y < Image.GetLength(1); y++)
-                {
-                    int value = Image[x, y];
-                    OutputImage.SetPixel(x, y, Color.FromArgb(value, value, value));               // Set the pixel color at coordinate (x,y)
-                }
-            }/**/
+            */
             
-            pictureBox2.Image = (Image)outputImage;                         // Display output image
-            progressBar.Visible = false;                                    // Hide progress bar
+            // Copy array to output Bitmap
+            outputImage = new Grayscale().ToBitmap(image);
+            pictureBox2.Image = (Image)outputImage;
+            progressBar.Visible = false;
         }
         
         private void saveButton_Click(object sender, EventArgs e)
@@ -187,19 +175,23 @@ namespace INFOIBV
         private SortedSet<Tuple<double,double>> findLines(int[,] image, double stepSize) 
         {
             SortedSet<Tuple<double,double>> result = new SortedSet<Tuple<double,double>>();
-            for (int x = 0; x < image.GetLength(0); x++)
+
+            int width = image.GetLength(0);
+            int height = image.GetLength(1);
+            int maxVal = (int)Math.Ceiling(Math.Sqrt(width * width + height * height));
+
+            for (int step = 0; step < width; step++)
             {
-                for (int y = 0; y < image.GetLength(1); y++)
+                for (int r = 0; r < height; r++)
                 {
-                    int value = image[x, y];
+                    int value = image[step, r];
                     if(value == 0)
                         continue;
 
-                    double angle = ((x * stepSize) * Math.PI/180);
-                    double d = y - 2 * inputImage.Height;
-                    Console.WriteLine("Theta: " + angle + "   d: " + d);
-                    // FIXME: Limit amount of lines found
-                    result.Add(Tuple.Create<double,double>(angle, d));
+                    double angle = ((step * stepSize) * Math.PI/180.0);
+                    double d = r - maxVal;
+                    Console.WriteLine("Angle: {0}, r: {1}",angle, d);
+                    result.Add(new Tuple<double,double>(angle, d));
                 }
             }
 
@@ -241,44 +233,6 @@ namespace INFOIBV
                             result.Add(Tuple.Create(two, one));
                     }
                 }   
-            }
-            return result;
-        }
-        private int[,] houghLines(int[,] image, double stepSize) 
-        {
-            int width = image.GetLength(0);
-            int height = image.GetLength(1);
-
-            int[,] result = new int[(int)(180/stepSize), height * 4];
-
-            Random random = new Random();
-            for(int x = 0; x < width; x++) {
-                for(int y = 0; y < height; y++) {
-                    int value = image[x, y];
-                    if(value <= 0)
-                        continue;
-
-                    // Loop over the angles.
-                    for(int angle = 0; angle < (int)(180/stepSize); angle++) {
-                        double theta = (angle * stepSize) * Math.PI / 180.0;
-
-                        int r;
-                        //if(angle == 45 / stepSize) {
-                        //    r = (int)((x + y) / Math.Sqrt(2) + random.NextDouble());
-                        //} else if(angle == 135 / stepSize) {
-                        //    r = (int)((y - x) / Math.Sqrt(2) + random.NextDouble());
-                        //} else 
-                        {
-                            r = (int)Math.Round(
-                                x * Math.Cos(theta) + 
-                                y * Math.Sin(theta));
-                        }
-                        if(r == 0) continue;
-                        r += 2 * height;
-
-                        result[angle, r]++;
-                    }
-                }
             }
             return result;
         }

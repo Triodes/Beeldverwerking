@@ -24,7 +24,7 @@ namespace INFOIBV.ImageOperations
 
             int[,] result = Defaults.Combine(horizontal, vertical, (x, y) =>
             {
-                return (x + y) / 2;
+                return (int)Math.Round(Math.Sqrt(x*x+y*y));
             });
             return result;
         }

@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using INFOIBV.ImageOperations;
+using INFOIBV.LineOperations;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -52,13 +54,21 @@ namespace INFOIBV
             double stepSize = 0.25;
 
             image = new Sobel().Compute(image);
-            image = Defaults.Compute(image, (v) => Math.Abs(v));
+            image = Morphologicals.Closing(image, new bool[,] {{false, true, false}, {true, true, true}, {false, true, false}});
+            //image = Defaults.Compute(image, (v) => v < 10 ? 0 : v);
             int[,] edges = image;
             image = new Hough().Compute(image, stepSize);
-            image = Defaults.Normalize(image,255);
+            image = Defaults.Normalize(image, 255);
             image = new Window(120, 255).Compute(image);
-            int maxVal = (int)Math.Ceiling(Math.Sqrt(edges.GetLength(0) * edges.GetLength(0) + edges.GetLength(1) * edges.GetLength(0)));
-            findLines(image, stepSize, maxVal);
+            int maxVal = (int)Math.Ceiling(Math.Sqrt(edges.GetLength(0) * edges.GetLength(0) + edges.GetLength(1) * edges.GetLength(1)));
+            SortedSet<Line> lines = Lines.findLines(image, stepSize, maxVal);
+            lines = Lines.filterLines(lines);
+            Console.WriteLine("\nFILTERED:");
+            foreach(Line line in lines) 
+            {
+                Console.WriteLine("Theta: {0}, rho: {1}, value: {2}", line.theta, line.rho, line.value);
+            }
+            image = edges;
 
             //// Find the first line.
             //SortedSet<Tuple<double,double>> lines = findLines(image, stepSize);
@@ -191,32 +201,9 @@ namespace INFOIBV
 
                     double angle = ((step * stepSize) * Math.PI/180.0);
                     double d = r - maxVal;
-                    //Console.WriteLine("Angle: {0}, r: {1}",angle, d);
+                    Console.WriteLine("Angle: {0}, r: {1}, value: {2}", angle, d, value);
                     result.Add(new Tuple<double,double,int>(angle, d, value));
                 }
-            }
-
-            return result;
-        }
-
-        private SortedSet<Tuple<double,double>> filterLines(SortedSet<Tuple<double,double>> lines) 
-        {
-            SortedSet<Tuple<double,double>> result = new SortedSet<Tuple<double,double>>();
-            Tuple<double, double> prevLine = null;
-            foreach (var line in lines)
-            {
-                if (prevLine != null)
-                {
-                    if (Math.Abs(prevLine.Item1 - line.Item1) > 5 || Math.Abs(prevLine.Item2 - line.Item2) > 5)
-                    {
-                        result.Add(line);
-                    }
-                }
-                else
-                {
-                    result.Add(line);
-                }
-                prevLine = line;
             }
 
             return result;

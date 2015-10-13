@@ -43,7 +43,7 @@ namespace INFOIBV.LineOperations
     public static class Lines 
     {
 
-        public static SortedSet<Line> findLines(int[,] image, double stepSize, int maxVal)
+        public static SortedSet<Line> FindLines(int[,] image, double stepSize, int maxVal)
         {
             SortedSet<Line> result = new SortedSet<Line>();
 
@@ -70,7 +70,7 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
-        public static SortedSet<Line> filterLines(SortedSet<Line> lines)
+        public static SortedSet<Line> FilterLines(SortedSet<Line> lines)
         {
             SortedSet<Line> result = new SortedSet<Line>();
 

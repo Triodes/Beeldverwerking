@@ -55,14 +55,14 @@ namespace INFOIBV
 
             image = new Sobel().Compute(image);
             image = Morphologicals.Closing(image, new bool[,] {{false, true, false}, {true, true, true}, {false, true, false}});
-            //image = Defaults.Compute(image, (v) => v < 10 ? 0 : v);
+            image = Defaults.Compute(image, (v) => v < 20 ? 0 : v);
             int[,] edges = image;
             image = new Hough().Compute(image, stepSize);
             image = Defaults.Normalize(image, 255);
-            image = new Window(120, 255).Compute(image);
+            image = new Window(75, 255).Compute(image);
             int maxVal = (int)Math.Ceiling(Math.Sqrt(edges.GetLength(0) * edges.GetLength(0) + edges.GetLength(1) * edges.GetLength(1)));
-            SortedSet<Line> lines = Lines.findLines(image, stepSize, maxVal);
-            lines = Lines.filterLines(lines);
+            SortedSet<Line> lines = Lines.FindLines(image, stepSize, maxVal);
+            lines = Lines.FilterLines(lines);
             Console.WriteLine("\nFILTERED:");
             foreach(Line line in lines) 
             {

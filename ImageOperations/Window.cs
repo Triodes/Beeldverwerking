@@ -18,10 +18,10 @@ namespace INFOIBV.ImageOperations
 
         public int[,] Compute(int[,] image)
         {
-            return Defaults.Compute(image, ComputeThreshold);
+            return Defaults.Compute(image, ComputeWindow);
         }
 
-        private int ComputeThreshold(int input)
+        private int ComputeWindow(int input)
         {
             return input < lower || input >= upper ? 0 : input;
         }

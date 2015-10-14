@@ -19,6 +19,8 @@ namespace INFOIBV
     {
         private Bitmap inputImage;
         private Bitmap outputImage;
+        private const int THRESHOLD = 158;
+        private const double STEP_SIZE = 0.25;
 
         public INFOIBV()
         {
@@ -39,7 +41,9 @@ namespace INFOIBV
         private void ApplyButton_Click(object sender, EventArgs e)
         {
             if (inputImage == null) return;
+            applyButton.Enabled = false;
             if (outputImage != null) outputImage.Dispose();
+            int[,] output;
 
             // Setup progress bar
             //progressBar.Visible = true;
@@ -48,133 +52,66 @@ namespace INFOIBV
             //progressBar.Value = 1;
             //progressBar.Step = 1;
 
-            int[,] image = new Grayscale().FromBitmap(inputImage);
+            int[,] original = new Grayscale().FromBitmap(inputImage);
 
             //==========================================================================================
-            double stepSize = 0.25;
 
-            image = new Sobel().Compute(image);
-            image = Morphologicals.Closing(image, new bool[,] {{false, true, false}, {true, true, true}, {false, true, false}});
-            image = Defaults.Compute(image, (v) => v < 20 ? 0 : v);
-            int[,] edges = image;
-            image = new Hough().Compute(image, stepSize);
-            image = Defaults.Normalize(image, 255);
-            image = new Window(75, 255).Compute(image);
+            int[,] edges = new Sobel().Compute(original);
+            //edges = Morphologicals.Closing(edges, new bool[,] { { false, true, false }, { true, true, true }, { false, true, false } });
+            edges = new Window(20, int.MaxValue).Compute(edges);
+
+            //int[,] mask = new Threshold(THRESHOLD,true).Compute(original);
+
+            //bool[,] strucElem = 
+            //{
+            //    {true, true, true, true, true, true, true},
+            //    {true, true, true, true, true, true, true},
+            //    {true, true, true, true, true, true, true},
+            //    {true, true, true, true, true, true, true},
+            //    {true, true, true, true, true, true, true},
+            //    {true, true, true, true, true, true, true},
+            //    {true, true, true, true, true, true, true}
+            //};
+
+            //int[,] reconstruction = Morphologicals.GeoDilation(edges, strucElem, mask);
+
+            #region HOUGH
+            int[,] hough = new Hough().Compute(edges, STEP_SIZE);
+            hough = Defaults.Normalize(hough, 255);
+            hough = new Window(75, 255).Compute(hough);
             int maxVal = (int)Math.Ceiling(Math.Sqrt(edges.GetLength(0) * edges.GetLength(0) + edges.GetLength(1) * edges.GetLength(1)));
-            SortedSet<Line> lines = Lines.FindLines(image, stepSize, maxVal);
+            SortedSet<Line> lines = Lines.FindLines(hough, STEP_SIZE, maxVal);
             lines = Lines.FilterLines(lines);
             Console.WriteLine("\nFILTERED:");
-            foreach(Line line in lines) 
+            foreach (Line line in lines)
             {
                 Console.WriteLine("Theta: {0}, rho: {1}, value: {2}", line.theta, line.rho, line.value);
             }
-            image = edges;
+            #endregion
 
-            //// Find the first line.
-            //SortedSet<Tuple<double,double>> lines = findLines(image, stepSize);
-            ////lines = filterLines(lines);
-            //Console.WriteLine(lines.Count);
-            //// Find perpendicular lines.
-            //List<Tuple<Tuple<double, double>,Tuple<double,double>>> pairs = findPerpendicular(lines);
-            //Console.WriteLine("Pairs: " + pairs.Count);
+            output = Defaults.Normalize(edges,255);
 
-            // Find squares.
-            //lines.Clear();
-            //foreach(var one in pairs) {
-            //    foreach(var two in pairs) {
-            //        if(one == two)
-            //            continue;
+            // Copy array to output Bitmap
+            outputImage = new Grayscale().ToBitmap(output);
+            pictureBox2.Image = (Image)outputImage;
 
-            //        if(Math.Abs(one.Item1.Item1 - two.Item1.Item1) <= 0.1
-            //           && Math.Abs(one.Item2.Item1 - two.Item2.Item1) <= 0.1
-            //            && Math.Abs(one.Item1.Item2 - two.Item1.Item2) > 20
-            //            && Math.Abs(one.Item2.Item2 - two.Item2.Item2) > 20) {
-            //            lines.Add(one.Item1);
-            //            lines.Add(one.Item2);
-            //            lines.Add(two.Item1);
-            //            lines.Add(two.Item2);
+            Graphics g = Graphics.FromImage(outputImage);
 
-            //            double bw = Math.Abs(one.Item1.Item2 - two.Item1.Item2);
-            //            double bh = Math.Abs(one.Item2.Item2 - two.Item2.Item2);
-            //            Console.WriteLine("Square: " + bw + "x" + bh + " (" + (bh/bw) + ")");
-            //            goto done;
-            //        }
-            //    }
-            //}
-            //done:
-            //Console.WriteLine(lines.Count);
-            //// Make everything outside square black.
-            //if(lines.Count == 5)
-            //{
-            //    Console.WriteLine(lines.First().Item1 + " " + lines.First().Item2);
-            //    int i = 0;
-            //    foreach(var line in lines) {
-            //        double theta = line.Item1;
-            //        double lineR = line.Item2;
-            //        for(int x = 0; x < edges.GetLength(0); x++) {
-            //            for(int y = 0; y < edges.GetLength(1); y++) {
-            //                int r = (int)(
-            //                            x * Math.Cos(theta) +
-            //                            y * Math.Sin(theta));
-            //                if(i % 2 == 0) {
-            //                    if(r <= lineR) {
-            //                        edges[x, y] = 0;
-            //                    }
-            //                } else {
-            //                    if(r >= lineR) {
-            //                        edges[x, y] = 0;
-            //                    }
-            //                }
-                                
-            //            }
-            //        }
-            //        i++;
-            //        if(i == 4)
-            //            break;
-            //    }
-            //}
-
-            /** /
-            outputImage = new Bitmap(inputImage.Size.Width, inputImage.Size.Height); // Create new output image
-            for (int x = 0; x < inputImage.Size.Width; x++)
+            foreach (Line line in lines)
             {
-                int[] lineYs = new int[lines.Count];
-                int i = 0;
-                foreach(var line in lines) {
-                    double angle = line.Item1;
-                    double d = line.Item2;
-                    lineYs[i] = (int)((d - (double)x * Math.Cos(angle)) / Math.Sin(angle));
-                    i++;
-                }
-
-                for (int y = 0; y < inputImage.Size.Height; y++)
+                if (line.theta == 0)
                 {
-                    bool found = false;
-                    foreach(int lineY in lineYs) {
-                        if(lineY != y)
-                            continue;
-                        
-                        outputImage.SetPixel(x, y, Color.Purple);
-                        found = true;
-                        break;
-                    }
-
-                    if(!found)
-                    {
-                        int v = edges[x, y];
-                        outputImage.SetPixel(x, y, Color.FromArgb(v,v,v));               // Set pixel color in array at (x,y)
-                    }
+                    g.DrawLine(Pens.Cyan, (float)line.rho, 0, (float)line.rho, outputImage.Height);
+                }
+                else
+                {
+                    float y0 = (float)(line.rho / Math.Sin(line.theta));
+                    float y1 = (float)((line.rho - outputImage.Width * Math.Cos(line.theta)) / Math.Sin(line.theta));
+                    g.DrawLine(Pens.Cyan, 0, y0, outputImage.Width, y1);
                 }
             }
-            /** /
-            //===========================================================================================
-
-            */
             
-            // Copy array to output Bitmap
-            outputImage = new Grayscale().ToBitmap(image);
-            pictureBox2.Image = (Image)outputImage;
-            progressBar.Visible = false;
+            applyButton.Enabled = true;
         }
         
         private void saveButton_Click(object sender, EventArgs e)

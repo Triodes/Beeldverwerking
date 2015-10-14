@@ -34,11 +34,13 @@ namespace INFOIBV.ImageOperations
                 int currentLine = y * bitmapData.Stride;
                 for (int x = 0; x < widthInBytes; x = x + bytesPerPixel)
                 {
-                    int oldBlue = pixels[currentLine + x];
-                    int oldGreen = pixels[currentLine + x + 1];
-                    int oldRed = pixels[currentLine + x + 2];
+                    int temp = 0;
+                    for (int i = 0; i < bytesPerPixel; i++)
+                    {
+                        temp += pixels[currentLine + x + i];
+                    }
 
-                    result[x/bytesPerPixel, y] = (oldBlue + oldGreen + oldRed) / 3;
+                    result[x/bytesPerPixel, y] = temp / bytesPerPixel;
                 }
             }
 

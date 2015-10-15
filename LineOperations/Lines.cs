@@ -42,6 +42,7 @@ namespace INFOIBV.LineOperations
 
     public static class Lines 
     {
+        private const double BUCKET_SIZE = 5 * Math.PI / 180.0;
 
         public static SortedSet<Line> FindLines(int[,] image, double stepSize, int maxVal)
         {
@@ -53,16 +54,18 @@ namespace INFOIBV.LineOperations
             // Loop over the hough image.
             for (int step = 0; step < width; step++)
             {
+                // Compute the theta from the current step
+                double theta = ((step * stepSize) * Math.PI/180.0);
+
+                // Go over the y-axis of the Hough image (rho).
                 for (int r = 0; r < height; r++)
                 {
                     int value = image[step, r];
                     if(value == 0)
                         continue;
 
-                    // Recompute the theta and rho from the pixel location.
-                    double theta = ((step * stepSize) * Math.PI/180.0);
+                    // Recompute the rho from the pixel location.
                     double rho = r - maxVal;
-                    //Console.WriteLine("Theta: {0}, rho: {1}, value: {2}", theta, rho, value);
                     result.Add(new Line(theta, rho, value));
                 }
             }
@@ -76,7 +79,6 @@ namespace INFOIBV.LineOperations
 
             // Go over the lines, they are ordered on the angle.
             // So group them in 'buckets' of max 5 degrees.
-            double bucketSize = 5 * Math.PI / 180.0;
             double currentAngle = -1;
             double currentSize = 0;
 
@@ -84,7 +86,7 @@ namespace INFOIBV.LineOperations
             SortedSet<Line> bucket = new SortedSet<Line>(comparer);
             foreach(Line line in lines)
             {
-                if(bucket.Count == 0 || currentSize + (line.theta - currentAngle) < bucketSize) 
+                if(bucket.Count == 0 || currentSize + (line.theta - currentAngle) < BUCKET_SIZE) 
                 {
                     // Add the line to the bucket.
                     bucket.Add(line);
@@ -101,7 +103,7 @@ namespace INFOIBV.LineOperations
                     bucket = new SortedSet<Line>(comparer);
                 }
             }
-            // Handle the last bucket.
+            // TODO: Handle the last bucket, this will possibly contain duplicates with the first bucket.
             handleBucket(bucket, result);
 
             return result;
@@ -111,16 +113,23 @@ namespace INFOIBV.LineOperations
         {
             // Loop over the lines and remove close lines.
             double currentRho = -1;
+            Line? currentBest = null;
             foreach(Line parallelLine in bucket) 
             {
-                if(currentRho == -1 || Math.Abs(currentRho - parallelLine.rho) >= 15) 
+                if(currentRho != -1 && Math.Abs(currentRho - parallelLine.rho) >= 15) 
                 {
-                    result.Add(parallelLine);
+                    result.Add(currentBest.Value);
+                    currentBest = null;
+                }
+                if(currentBest == null || parallelLine.value > currentBest.Value.value) 
+                {
+                    currentBest = parallelLine;
                 }
                 currentRho = parallelLine.rho;
             }
+            // Add trailing line.
+            result.Add(currentBest.Value);
         }
-
 
 
     }

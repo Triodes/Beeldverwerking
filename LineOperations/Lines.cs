@@ -5,7 +5,7 @@ using System.Linq;
 namespace INFOIBV.LineOperations 
 {
 
-    public struct Line : IComparable
+    public struct Line : IComparable<Line>
     {
         public readonly double theta;
         public readonly double rho;
@@ -18,7 +18,7 @@ namespace INFOIBV.LineOperations
             this.value = value;
         }
 
-        public int CompareTo(object obj) {
+        public int CompareTo(Line obj) {
             if(obj.GetType() != typeof(Line)) 
                 return 0;
             
@@ -36,7 +36,7 @@ namespace INFOIBV.LineOperations
         public int Compare(Line a, Line b) {
             if(a.rho != b.rho)
                 return a.rho.CompareTo(b.rho);
-            return a.CompareTo(b.value);
+            return a.value.CompareTo(b.value);
         }
     }
 
@@ -109,6 +109,78 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
+        public static SortedSet<Line> FindRectangle(SortedSet<Line> input)
+        {
+            SortedSet<Line> horizontals = new SortedSet<Line>();
+            SortedSet<Line> verticals = new SortedSet<Line>();
+            foreach (Line line in input)
+            {
+                if (line.theta <= 0.15 || Math.Abs(line.theta - Math.PI) <= 0.15)
+                    verticals.Add(line);
+                if (Math.Abs(line.theta - Math.PI / 2) <= 0.075 && Math.Abs(line.rho) > 25)
+                    horizontals.Add(line);
+            }
+            SortedSet<Line> toRemove = new SortedSet<Line>();
+            foreach (Line line1 in verticals)
+            {
+                foreach (Line line2 in verticals)
+                {
+                    if (line1.Equals(line2))
+                        continue;
+                    double d = Math.Abs(Math.Abs(line2.rho) - Math.Abs(line1.rho));
+                    if (d < 10)
+                    {
+                        if (line1.value > line2.value)
+                            toRemove.Add(line2);
+                        else if (line1.value < line2.value)
+                            toRemove.Add(line1);
+                        else
+                            toRemove.Add(line1.theta < line2.theta ? line1 : line2);
+                    }
+                }
+            }
+            foreach (Line item in toRemove)
+            {
+                verticals.Remove(item);
+            }
+
+
+
+            SortedSet<Line> result = new SortedSet<Line>();
+
+            foreach (Line v1 in verticals)
+            {
+                foreach (Line v2 in verticals)
+                {
+                    if (v1.Equals(v2))
+                        continue;
+
+                    foreach (Line h1 in horizontals)
+                    {
+                        foreach (Line h2 in horizontals)
+                        {
+                            if (h1.Equals(h2))
+                                continue;
+
+                            double dv = Math.Abs(Math.Abs(v1.rho) - Math.Abs(v2.rho));
+                            double dh = Math.Abs(Math.Abs(h1.rho) - Math.Abs(h2.rho));
+                            double ratio = dv / dh;
+                            Console.WriteLine("Ratio: " + ratio);
+                            if (ratio > 0.52 && ratio < 0.60)
+                            {
+                                result.Add(v1);
+                                result.Add(v2);
+                                result.Add(h1);
+                                result.Add(h2);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
         private static void handleBucket(SortedSet<Line> bucket, SortedSet<Line> result)
         {
             // Loop over the lines and remove close lines.
@@ -128,7 +200,8 @@ namespace INFOIBV.LineOperations
                 currentRho = parallelLine.rho;
             }
             // Add trailing line.
-            result.Add(currentBest.Value);
+            if (currentBest != null)
+                result.Add(currentBest.Value);
         }
 
 

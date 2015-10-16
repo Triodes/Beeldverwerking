@@ -37,17 +37,11 @@ namespace INFOIBV.ImageOperations
                     {
                         float weight = kernel[kx + halfKWidth, ky + halfKHeight];
                         int oldValue;
-                        if (x + kx < 0 || x + kx >= width || y + ky < 0 || y + ky >= height)
-                        {
-                            // Perform not padding, not mirroring, but the other
-                            int ix = Clamp(x + kx, 0, width - 1);
-                            int iy = Clamp(y + ky, 0, height - 1);
-                            oldValue = image[ix, iy];
-                        }
-                        else
-                        {
-                            oldValue = image[x + kx, y + ky];
-                        }
+
+                        // Perform not padding, not mirroring, but the other
+                        int ix = Clamp(x + kx, 0, width - 1);
+                        int iy = Clamp(y + ky, 0, height - 1);
+                        oldValue = image[ix, iy];
 
                         newValue += (int)(weight * oldValue);
                     }

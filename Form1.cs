@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.IO;
 using INFOIBV.ImageOperations;
 using INFOIBV.LineOperations;
+using INFOIBV.ShapeOperations;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -95,10 +96,43 @@ namespace INFOIBV
             IList<Card> cards = Lines.FindRectangle(lines);
             Console.WriteLine("\nCARDS: {0}", cards.Count);
 
-            int[,] test = cards.Count >= 1 ? Rectangles.CreateMask(original, cards[0]) : original;
-                
+            // ---
+            if(cards.Count >= 1)
+            {
+                int[,] cardContent = Rectangles.CreateMask(wth, cards[0]);
 
-            output = Defaults.Normalize(test, 255);
+                int objects = 0;
+                for(int y = 0; y < cardContent.GetLength(1); y++)
+                {
+                    for(int x = 0; x < cardContent.GetLength(0); x++)
+                    {
+                        if(cardContent[x,y] > objects) {
+                            objects++;
+                            IList<int> path = Perimeter.WalkPerimeter(cardContent, x, y);
+                            double length = Perimeter.ComputeLength(path);
+                            double area = Perimeter.ComputeArea(path);
+                            double ratio = area / length;
+
+                            if(length <= 50 || ratio <= 0.6 || length > 500)
+                            {
+                                //Console.WriteLine("\tInsignificant object");
+                                objects--;
+                                Perimeter.remove(ref cardContent, x, y, 0);
+                                continue;
+                            }
+                            Console.WriteLine("#{0}\t{1}/{2} = {3}", objects, length, area, ratio);
+                            Perimeter.remove(ref cardContent, x, y, objects);
+                        }
+
+                    }
+                }
+                Console.WriteLine("Objects: {0}", objects);
+                output = Defaults.Normalize(cardContent, 255);
+            }
+            else
+            {
+                output = Defaults.Normalize(wth, 255);
+            }
 
             // Copy array to output Bitmap
             Bitmap outputImage = new Grayscale().ToBitmap(output);

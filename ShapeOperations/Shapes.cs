@@ -33,15 +33,21 @@ namespace INFOIBV.ShapeOperations {
                 {
                     currentDirection = (currentDirection + 6) % 8;
                 }
+                int startDirection = currentDirection;
 
                 while(!IsPartOfShape(image, currentDirection, currX, currY))
                 {
                     currentDirection = (currentDirection + 1) % 8; 
+                    if(currentDirection == startDirection)
+                    {
+                        // Gone round, meaning this is a isolated pixel.
+                        return result;
+                    }
                 }
 
                 // Append to the path.
                 Position(currentDirection, ref currX, ref currY);
-                Console.WriteLine("Going {0} [{1}x{2}] - [{3}x{4}]", currentDirection, currX, currY, startX, startY);
+                //Console.WriteLine("Going {0} [{1}x{2}] - [{3}x{4}]", currentDirection, currX, currY, startX, startY);
                 result.Add(currentDirection);
             } while(currX != startX || currY != startY);
 
@@ -108,6 +114,22 @@ namespace INFOIBV.ShapeOperations {
             }
             return area;
         }
+
+        public static void remove(ref int[,] image, int x, int y, int value)
+        {
+            if(image[x, y] <= value)
+                return;
+            image[x, y] = value;
+            remove(ref image, x - 1, y - 1, value);
+            remove(ref image, x, y - 1, value);
+            remove(ref image, x + 1, y - 1, value);
+            remove(ref image, x - 1, y, value);
+            remove(ref image, x + 1, y, value);
+            remove(ref image, x - 1, y + 1, value);
+            remove(ref image, x, y + 1, value);
+            remove(ref image, x + 1, y + 1, value);
+        }
+
 
         public static void Position(int direction, ref int x, ref int y) 
         {

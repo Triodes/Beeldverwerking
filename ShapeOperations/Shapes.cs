@@ -3,28 +3,21 @@ using System.Collections.Generic;
 
 namespace INFOIBV.ShapeOperations {
 
-    public enum Directions
-    {
-        NORTH = 0,
-        NORHT_EAST,
-        EAST,
-        SOUTH_EAST,
-        SOUTH,
-        SOUTH_WEST,
-        WEST,
-        NORTH_WEST,
-        MAX_DIRECTION
-    }
-
     public static class Perimeter {
 
-        public static IList<Directions> walkPerimeter(int[,] image, int startX, int startY)
-        {
-            IList<Directions> result = new List<Directions>();
-            Directions currentDirection = Directions.EAST;
+        public const int NORTH = 0;
+        public const int NORHT_EAST = 1;
+        public const int EAST = 2;
+        public const int SOUTH_EAST = 3;
+        public const int SOUTH = 4;
+        public const int SOUTH_WEST = 5;
+        public const int WEST = 6;
+        public const int NORTH_WEST = 7;
 
-            int width = image.GetLength(0);
-            int height = image.GetLength(1);
+        public static IList<int> WalkPerimeter(int[,] image, int startX, int startY)
+        {
+            IList<int> result = new List<int>();
+            int currentDirection = NORHT_EAST;
 
             int currX = startX;
             int currY = startY;
@@ -32,26 +25,22 @@ namespace INFOIBV.ShapeOperations {
             // Walk until we reach the starting position again
             do 
             {
-                if(isPartOfShape(image, currentDirection, currX, currY))
+                if(currentDirection % 2 == 0) 
                 {
-                    // The current direction is still part of the shape, try turning left.
-                    do 
-                    {
-                        currentDirection = (Directions)(((int)currentDirection - 1 + (int)Directions.MAX_DIRECTION) % (int)Directions.MAX_DIRECTION);
-                    } while(isPartOfShape(image, currentDirection, currX, currY));
-                    currentDirection = (Directions)(((int)currentDirection + 1) % (int)Directions.MAX_DIRECTION);
+                    currentDirection = (currentDirection + 7) % 8;
                 }
                 else
                 {
-                    // The current direction is no longer part of the shape, try turning right.
-                    do 
-                    {
-                        currentDirection = (Directions)(((int)currentDirection + 1) % (int)Directions.MAX_DIRECTION);
-                    } while(!isPartOfShape(image, currentDirection, currX, currY));
+                    currentDirection = (currentDirection + 6) % 8;
+                }
+
+                while(!IsPartOfShape(image, currentDirection, currX, currY))
+                {
+                    currentDirection = (currentDirection + 1) % 8; 
                 }
 
                 // Append to the path.
-                position(currentDirection, ref currX, ref currY);
+                Position(currentDirection, ref currX, ref currY);
                 Console.WriteLine("Going {0} [{1}x{2}] - [{3}x{4}]", currentDirection, currX, currY, startX, startY);
                 result.Add(currentDirection);
             } while(currX != startX || currY != startY);
@@ -59,12 +48,12 @@ namespace INFOIBV.ShapeOperations {
             return result;
         }
 
-        public static double computeLength(IList<Directions> path) 
+        public static double ComputeLength(IList<int> path) 
         {
             double result = 0;
-            foreach(Directions direction in path) 
-            {
-                if((int)direction % 2 == 0) 
+            foreach(int direction in path) 
+        {
+                if(direction % 2 == 0) 
                 {
                     result += 1;
                 }
@@ -76,44 +65,88 @@ namespace INFOIBV.ShapeOperations {
             return result;
         }
 
-        public static void position(Directions direction, ref int x, ref int y) 
+        public static double ComputeArea(IList<int> path)
+        {
+            double area = 1;
+            int yLevel = 0;
+
+            foreach(int direction in path) 
+            {
+                //area += 1;
+                switch(direction) {
+                case NORTH:
+                    area += 1;
+                    yLevel--;
+                    break;
+                case NORHT_EAST:
+                    yLevel--;
+                    area -= yLevel;
+                    break;
+                case EAST:
+                    area += 1;
+                    area -= yLevel;
+                    break;
+                case SOUTH_EAST:
+                    area -= yLevel;
+                    yLevel++;
+                    break;
+                case SOUTH:
+                    yLevel++;
+                    break;
+                case SOUTH_WEST:
+                    yLevel++;
+                    area += yLevel;
+                    break;
+                case WEST:
+                    area += yLevel;
+                    break;
+                case NORTH_WEST:
+                    area += yLevel;
+                    yLevel--;
+                    break;
+                }
+            }
+            return area;
+        }
+
+        public static void Position(int direction, ref int x, ref int y) 
         {
             switch(direction) 
             {
-            case Directions.NORTH:
+            case NORTH:
                 y -= 1;
                 break;
-            case Directions.NORHT_EAST:
+            case NORHT_EAST:
                 y -= 1;
                 x += 1;
                 break;
-            case Directions.EAST:
+            case EAST:
                 x += 1;
                 break;
-            case Directions.SOUTH_EAST:
+            case SOUTH_EAST:
                 y += 1;
                 x += 1;
                 break;
-            case Directions.SOUTH:
+            case SOUTH:
                 y += 1;
                 break;
-            case Directions.SOUTH_WEST:
+            case SOUTH_WEST:
                 y += 1;
                 x -= 1;
                 break;
-            case Directions.WEST:
+            case WEST:
                 x -= 1;
                 break;
-            case Directions.NORTH_WEST:
+            case NORTH_WEST:
                 y -= 1;
                 x -= 1;
                 break;
             }
         }
 
-        public static bool isPartOfShape(int[,] image, Directions direction, int x, int y)
+        public static bool IsPartOfShape(int[,] image, int direction, int x, int y)
         {
-            position(direction, ref x, ref y);          
+            Position(direction, ref x, ref y);          
 
             // FIXME: Check bounds
             return image[x, y] > 0;

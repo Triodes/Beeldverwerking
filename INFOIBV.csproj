@@ -86,6 +86,7 @@
     </Compile>
     <Compile Include="LineOperations\Lines.cs" />
     <Compile Include="ShapeOperations\Shapes.cs" />
+    <Compile Include="LineOperations\Rectangles.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

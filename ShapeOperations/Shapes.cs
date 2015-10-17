@@ -16,9 +16,9 @@ namespace INFOIBV.ShapeOperations {
         MAX_DIRECTION
     }
 
-    public static class Perimiter {
+    public static class Perimeter {
 
-        public static IList<Directions> walkPerimiter(int[,] image, int startX, int startY)
+        public static IList<Directions> walkPerimeter(int[,] image, int startX, int startY)
         {
             IList<Directions> result = new List<Directions>();
             Directions currentDirection = Directions.EAST;

@@ -78,14 +78,13 @@ namespace INFOIBV
             //wth = Defaults.Normalize(wth, 255);
             wth = new Threshold(60).Compute(wth);
 
-
             #region HOUGH
             int[,] hough = new Hough().Compute(wth, STEP_SIZE);
             //hough = Defaults.Normalize(hough, 255);
             hough = new Window(20000, int.MaxValue).Compute(hough);
             int maxVal = (int)Math.Ceiling(Math.Sqrt(edges.GetLength(0) * edges.GetLength(0) + edges.GetLength(1) * edges.GetLength(1)));
             SortedSet<Line> lines = Lines.FindLines(hough, STEP_SIZE, maxVal);
-            lines = Lines.FindRectangle(Lines.FilterLines(lines));
+            lines = Lines.FilterLines(lines);
             Console.WriteLine("\nFILTERED:");
             foreach (Line line in lines)
             {
@@ -93,11 +92,17 @@ namespace INFOIBV
             }
             #endregion
 
-            output = Defaults.Normalize(wth, 255);
+            IList<Card> cards = Lines.FindRectangle(lines);
+            Console.WriteLine("\nCARDS: {0}", cards.Count);
+
+            int[,] test = cards.Count >= 1 ? Rectangles.CreateMask(original, cards[0]) : original;
+                
+
+            output = Defaults.Normalize(test, 255);
 
             // Copy array to output Bitmap
             Bitmap outputImage = new Grayscale().ToBitmap(output);
-            DrawLines(lines, outputImage);
+            //DrawLines(lines, outputImage);
 
             return outputImage;
         }

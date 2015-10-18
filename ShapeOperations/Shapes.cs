@@ -58,7 +58,7 @@ namespace INFOIBV.ShapeOperations {
         {
             double result = 0;
             foreach(int direction in path) 
-        {
+            {
                 if(direction % 2 == 0) 
                 {
                     result += 1;
@@ -113,6 +113,25 @@ namespace INFOIBV.ShapeOperations {
                 }
             }
             return area;
+        }
+
+        public static int[] BoundingBox(IList<int> path, int x, int y) 
+        {
+            int minX = x;
+            int minY = y;
+            int maxX = x;
+            int maxY = y;
+
+            foreach(int direction in path) 
+            {
+                Position(direction, ref x, ref y);
+                minX = Math.Min(minX, x);
+                minY = Math.Min(minY, y);
+                maxX = Math.Max(maxX, x);
+                maxY = Math.Max(maxY, y);
+            }
+
+            return new int[]{minX, minY, maxX, maxY};
         }
 
         public static void remove(ref int[,] image, int x, int y, int value)

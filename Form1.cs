@@ -68,16 +68,16 @@ namespace INFOIBV
 
             bool[,] strucElem = 
             {
-                {true, true, true},
-                {true, true, true},
-                {true, true, true}
+                {false, true, false},
+                {true,  true, true},
+                {false, true, false}
             };
 
             //int[,] reconstruction = Morphologicals.GeoDilation(edges, strucElem, mask);
 
             int[,] wth = Defaults.Combine(edges, Morphologicals.Opening(edges, strucElem), (a, b) => a - b);
             //wth = Defaults.Normalize(wth, 255);
-            wth = new Threshold(60).Compute(wth);
+            wth = new Threshold(30).Compute(wth);
 
             #region HOUGH
             int[,] hough = new Hough().Compute(wth, STEP_SIZE);
@@ -95,6 +95,11 @@ namespace INFOIBV
 
             IList<Card> cards = Lines.FindRectangle(lines);
             Console.WriteLine("\nCARDS: {0}", cards.Count);
+
+            // DEBUG
+            output = original;
+            Bitmap outputImage = new Grayscale().ToBitmap(output);
+            Graphics g = Graphics.FromImage(outputImage);
 
             // ---
             if(cards.Count >= 1)
@@ -122,6 +127,10 @@ namespace INFOIBV
                             }
                             Console.WriteLine("#{0}\t{1}/{2} = {3}", objects, length, area, ratio);
                             Perimeter.remove(ref cardContent, x, y, objects);
+
+                            // DEBUG
+                            int[] bounding = Perimeter.BoundingBox(path, x, y);
+                            g.DrawRectangle(Pens.Purple, bounding[0], bounding[1], bounding[2] - bounding[0], bounding[3] - bounding[1]);
                         }
 
                     }
@@ -135,7 +144,7 @@ namespace INFOIBV
             }
 
             // Copy array to output Bitmap
-            Bitmap outputImage = new Grayscale().ToBitmap(output);
+            //Bitmap outputImage = new Grayscale().ToBitmap(output);
             //DrawLines(lines, outputImage);
 
             return outputImage;
@@ -167,7 +176,7 @@ namespace INFOIBV
             saveImageDialog.Filter = "Bitmap file (*.bmp)|*.bmp";
             saveImageDialog.InitialDirectory = "..\\..\\images";
             if (saveImageDialog.ShowDialog() == DialogResult.OK)
-                pictureBox2.Image.Save(saveImageDialog.FileName);                 // Save the output image
+                pictureBox2.Image.Save(saveImageDialog.FileName);
         }
 
         private void Batch_Click(object sender, EventArgs e)

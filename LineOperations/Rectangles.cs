@@ -55,6 +55,20 @@ namespace INFOIBV.LineOperations
             return (fab * fbc > 0 && fbc * fca > 0);
         }
 
+
+        public static Card Shrink(Card card, float factorX, float factorY) 
+        {
+            // Determine middle point.
+            int centerX = (card.bottomLeft.X + card.bottomRight.X + card.topLeft.X + card.topRight.X) / 4;
+            int centerY = (card.bottomLeft.Y + card.bottomRight.Y + card.topLeft.Y + card.topRight.Y) / 4;
+
+            Point topLeft = new Point((int)((card.topLeft.X - centerX) * factorX + centerX), (int)((card.topLeft.Y - centerY) * factorY + centerY));
+            Point topRight = new Point((int)((card.topRight.X - centerX) * factorX + centerX), (int)((card.topRight.Y - centerY) * factorY + centerY));
+            Point bottomRight = new Point((int)((card.bottomRight.X - centerX) * factorX + centerX), (int)((card.bottomRight.Y - centerY) * factorY + centerY));
+            Point bottomLeft = new Point((int)((card.bottomLeft.X - centerX) * factorX + centerX), (int)((card.bottomLeft.Y - centerY) * factorY + centerY));
+
+            return new Card(topLeft, topRight, bottomRight, bottomLeft);
+        }
     }
 }
 

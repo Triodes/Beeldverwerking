@@ -59,7 +59,6 @@ namespace INFOIBV
             int[,] original = new Grayscale().FromBitmap(inputImage);
 
             //==========================================================================================
-
             int[,] edges = new Sobel().Compute(original);
             //edges = Morphologicals.Closing(edges, new bool[,] { { false, true, false }, { true, true, true }, { false, true, false } });
             //edges = new Window(20, int.MaxValue).Compute(edges);
@@ -96,15 +95,13 @@ namespace INFOIBV
             IList<Card> cards = Lines.FindRectangle(lines);
             Console.WriteLine("\nCARDS: {0}", cards.Count);
 
-            // DEBUG
-            output = original;
-            Bitmap outputImage = new Grayscale().ToBitmap(output);
-            Graphics g = Graphics.FromImage(outputImage);
-
             // ---
+            List<ShapeInfo> shapes = new List<ShapeInfo>();
             if(cards.Count >= 1)
             {
-                int[,] cardContent = Rectangles.CreateMask(wth, cards[0]);
+                Card card = cards[0];
+                card = Rectangles.Shrink(card, 0.75f, 0.9f);
+                int[,] cardContent = Rectangles.CreateMask(wth, card);
 
                 int objects = 0;
                 for(int y = 0; y < cardContent.GetLength(1); y++)
@@ -117,8 +114,10 @@ namespace INFOIBV
                             double length = Perimeter.ComputeLength(path);
                             double area = Perimeter.ComputeArea(path);
                             double ratio = area / length;
+                            int[] bounding = Perimeter.BoundingBox(path, x, y);
+                            ShapeInfo info = new ShapeInfo(path, bounding);
 
-                            if(length <= 50 || ratio <= 0.6 || length > 500)
+                            if(length <= 50 || ratio <= 0.6 || length > 500 || info.Ratio > 2.5)
                             {
                                 //Console.WriteLine("\tInsignificant object");
                                 objects--;
@@ -128,15 +127,89 @@ namespace INFOIBV
                             Console.WriteLine("#{0}\t{1}/{2} = {3}", objects, length, area, ratio);
                             Perimeter.remove(ref cardContent, x, y, objects);
 
+                            shapes.Add(info);
                             // DEBUG
-                            int[] bounding = Perimeter.BoundingBox(path, x, y);
-                            g.DrawRectangle(Pens.Purple, bounding[0], bounding[1], bounding[2] - bounding[0], bounding[3] - bounding[1]);
                         }
-
                     }
                 }
                 Console.WriteLine("Objects: {0}", objects);
                 output = Defaults.Normalize(cardContent, 255);
+
+                // 
+                double hearts = 0;
+                double spades = 0;
+                double diamonds = 0;
+                double clubs = 0;
+                foreach(ShapeInfo shape in shapes)
+                {
+                    // Classify the shape.
+                    int[,] shapeImage = Perimeter.FillArea(original, shape.Perimeter, shape.X, shape.Y);
+                    hearts += Perimeter.Compare(shapeImage, shape, new int[,]
+                        {
+                            {0,1,1,0,1,1,0},
+                            {1,1,1,1,1,1,1},
+                            {0,1,1,1,1,1,0},
+                            {0,1,1,1,1,1,0},
+                            {0,0,1,1,1,0,0},
+                            {0,0,1,1,1,0,0},
+                            {0,0,0,1,0,0,0}
+                        });
+                    spades += Perimeter.Compare(shapeImage, shape, new int[,]
+                        {
+                            {0,0,0,1,0,0,0},
+                            {0,0,1,1,1,0,0},
+                            {0,0,1,1,1,0,0},
+                            {0,1,1,1,1,1,0},
+                            {1,1,1,1,1,1,1},
+                            {0,0,0,1,0,0,0},
+                            {0,0,1,1,1,0,0}
+                        });
+                    diamonds += Perimeter.Compare(shapeImage, shape, new int[,]
+                        {
+                            {0,0,0,1,0,0,0},
+                            {0,0,1,1,1,0,0},
+                            {0,1,1,1,1,1,0},
+                            {1,1,1,1,1,1,1},
+                            {0,1,1,1,1,1,0},
+                            {0,0,1,1,1,0,0},
+                            {0,0,0,1,0,0,0}
+                        });
+                    clubs += Perimeter.Compare(shapeImage, shape, new int[,]
+                        {
+                            {0,0,1,1,1,0,0},
+                            {0,1,1,1,1,1,0},
+                            {0,0,1,1,1,0,0},
+                            {1,1,1,1,1,1,1},
+                            {1,1,1,1,1,1,1},
+                            {0,0,1,1,1,0,0},
+                            {0,0,1,1,1,0,0}
+                        });
+                }
+                hearts /= shapes.Count;
+                spades /= shapes.Count;
+                diamonds /= shapes.Count;
+                clubs /= shapes.Count;
+
+                String suit = "unkown";
+                if(hearts > spades && hearts > diamonds && hearts > clubs)
+                {
+                    suit = "Hearts";
+                }
+                else if(spades > diamonds && spades > clubs)
+                {
+                    suit = "Spades";
+                }
+                else if(diamonds > clubs) {
+                    suit = "Diamonds";
+                }
+                else
+                {
+                    suit = "Clubs";
+                }
+
+                Console.WriteLine("*** It's a card of {0} #{1}", suit, shapes.Count);
+                Console.WriteLine("\tHearts: {0}\n\tSpades: {1}\n\tDiamonds: {2}\n\tClubs: {3}", hearts, spades, diamonds, clubs);
+                //DialogResult result = MessageBox.Show(String.Format());
             }
             else
             {
@@ -144,8 +217,9 @@ namespace INFOIBV
             }
 
             // Copy array to output Bitmap
-            //Bitmap outputImage = new Grayscale().ToBitmap(output);
-            //DrawLines(lines, outputImage);
+            Bitmap outputImage = new Grayscale().ToBitmap(output);
+            DrawLines(lines, outputImage);
+            DrawShapes(shapes, outputImage);
 
             return outputImage;
         }
@@ -165,6 +239,15 @@ namespace INFOIBV
                     float y1 = (float)((line.rho - outputImage.Width * Math.Cos(line.theta)) / Math.Sin(line.theta));
                     g.DrawLine(Pens.Cyan, 0, y0, outputImage.Width, y1);
                 }
+            }
+        }
+
+        private void DrawShapes(List<ShapeInfo> shapes, Bitmap outputImage)
+        {
+            Graphics g = Graphics.FromImage(outputImage);
+            foreach (ShapeInfo shape in shapes)
+            {
+                g.DrawRectangle(Pens.Purple, shape.X, shape.Y, shape.Width, shape.Height);
             }
         }
         

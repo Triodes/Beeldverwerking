@@ -183,8 +183,10 @@ namespace INFOIBV.LineOperations
                             double width2 = Math.Sqrt((b.X - d.X) * (b.X - d.X) + (b.Y - d.Y) * (b.Y - d.Y));
 
                             double ratio = ((height1 + height2)/2) / ((width1 + width2)/2);
+                            Console.WriteLine("\tRatio: " + ratio);
+
                             // FIXME: Perhaps look for the most card-like ratio to reduce the amount of found "cards"?
-                            if (Math.Abs(ratio - 1.4) <= 0.1)
+                            if (Math.Abs(ratio - 1.41) <= 0.13)
                             {
                                 if (a.Y < b.Y)
                                 {
@@ -192,12 +194,12 @@ namespace INFOIBV.LineOperations
                                     if (a.X < c.X)
                                     {
                                         // Line V1 is the left line.
-                                        result.Add(new Card(a, c, d, b));
+                                        result.Add(new Card(a, c, d, b, ratio));
                                     }
                                     else
                                     {
                                         // Line V2 is the left line.
-                                        result.Add(new Card(c, a, b, d));
+                                        result.Add(new Card(c, a, b, d, ratio));
                                     }
                                 }
                                 else
@@ -206,12 +208,12 @@ namespace INFOIBV.LineOperations
                                     if (a.X < c.X)
                                     {
                                         // Line V1 is the left line.
-                                        result.Add(new Card(b, d, c, a));
+                                        result.Add(new Card(b, d, c, a, ratio));
                                     }
                                     else
                                     {
                                         // Line V2 is the left line.
-                                        result.Add(new Card(d, b, a, c));
+                                        result.Add(new Card(d, b, a, c, ratio));
                                     }
                                 }
                             }

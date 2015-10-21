@@ -76,7 +76,7 @@ namespace INFOIBV
 
             int[,] wth = Defaults.Combine(edges, Morphologicals.Opening(edges, strucElem), (a, b) => a - b);
             //wth = Defaults.Normalize(wth, 255);
-            int[,] wth60 = new Threshold(30).Compute(wth);
+            int[,] wth60 = new Threshold(60).Compute(wth);
             int[,] wth30 = new Threshold(30).Compute(wth);
 
             #region HOUGH
@@ -90,92 +90,48 @@ namespace INFOIBV
 
             IList<Card> cards = Lines.FindRectangle(lines);
 
-            // ---
-            List<ShapeInfo> shapes = new List<ShapeInfo>();
-            for (int i = 0; i < cards.Count; i++)
-            {
-                Card card = cards[i];
-                card = Rectangles.Shrink(card, 0.75f, 0.9f);
-                int[,] cardContent = Rectangles.CreateMask(wth30, card);
-
-                int objects = 0;
-                for (int y = 0; y < cardContent.GetLength(1); y++)
-                {
-                    for (int x = 0; x < cardContent.GetLength(0); x++)
-                    {
-                        if (cardContent[x, y] > objects)
-                        {
-                            objects++;
-                            IList<int> path = Perimeter.WalkPerimeter(cardContent, x, y);
-                            double length = Perimeter.ComputeLength(path);
-                            double area = Perimeter.ComputeArea(path);
-                            double compactness = area / length;
-                            int[] bounding = Perimeter.BoundingBox(path, x, y);
-                            ShapeInfo info = new ShapeInfo(path, bounding);
-
-                            if (length <= 50 || compactness <= 0.6 || length > 500 || info.Ratio > 2.5)
-                            {
-                                objects--;
-                                Perimeter.Colour(cardContent, x, y, 0);
-                                continue;
-                            }
-                            Perimeter.Colour(cardContent, x, y, objects);
-
-                            shapes.Add(info);
-                            // DEBUG
-                        }
-                    }
-                }
-
-                // 
-                String suit = "?";
-                double avgSolidity = 0;
-                int count = 0;
-                foreach (ShapeInfo shape in shapes)
-                {
-                    // Classify the shape.
-                    double area = Perimeter.ComputeArea(shape.Perimeter);
-                    double solidity = (shape.Width * shape.Height) / area;
-                    if (solidity >= 2)
-                    {
-                        // Something very wrong.
-                        continue;
-                    }
-                    count++;
-                    avgSolidity += solidity;
-                }
-                avgSolidity /= count;
-
-                if (avgSolidity >= 1.72)
-                {
-                    suit = "Diamonds";
-                }
-                else if (avgSolidity >= 1.59)
-                {
-                    suit = "Clubs";
-                }
-                else if (avgSolidity >= 1.42)
-                {
-                    suit = "Spades";
-                }
-                else if (avgSolidity >= 1.25)
-                {
-                    suit = "Hearts";
-                }
-
-                Console.WriteLine("*** It's a card of {0} #{1}", suit, shapes.Count);
-            }
-
+            output = wth60;
             // Copy array to output Bitmap
-            Bitmap outputImage = inputImage;//new Grayscale().ToBitmap(output);
+            Bitmap outputImage = new Grayscale().ToBitmap(output);
             Graphics g = Graphics.FromImage(outputImage);
+
+            DrawLines(lines, outputImage);
+
             foreach (Card card in cards)
             {
-                card.Draw(g);
+                card.Draw(g, Pens.Orange);
+                List<ShapeInfo> shapes = Shapes.Find(wth30, card);
+                Suit suit = Shapes.ClassifyShapes(shapes);
+                if (suit != Suit.Unknown)
+                {
+                    Console.WriteLine("Ratio: " + card.ratio);
+                    DrawShapes(shapes, g);
+                    card.Draw(g);
+                    g.DrawString(String.Format("{0} of {1}", shapes.Count == 1 ? "Ace" : shapes.Count.ToString(), suit), new Font("Arial", 14), Brushes.Orange, new PointF(card.bottomLeft.X, card.bottomLeft.Y + 4));
+                }
             }
-            DrawShapes(shapes, g);
+
+
 
             return outputImage;
+        }
+
+        private void DrawLines(SortedSet<Line> lines, Bitmap outputImage)
+        {
+            Graphics g = Graphics.FromImage(outputImage);
+            foreach (Line line in lines)
+            {
+                if (line.theta == 0)
+                {
+                    g.DrawLine(Pens.Lime, (float)line.rho, 0, (float)line.rho, outputImage.Height);
+                }
+                else
+                {
+                    float y0 = (float)(line.rho / Math.Sin(line.theta));
+                    float y1 = (float)((line.rho - outputImage.Width * Math.Cos(line.theta)) / Math.Sin(line.theta));
+                    g.DrawLine(Pens.Lime, 0, y0, outputImage.Width, y1);
+                }
+            }
         }
 
         private void DrawShapes(List<ShapeInfo> shapes, Graphics g)

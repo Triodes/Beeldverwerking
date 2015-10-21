@@ -1,248 +1,106 @@
-﻿using System;
+﻿using INFOIBV.LineOperations;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Linq;
+using System.Text;
 
-namespace INFOIBV.ShapeOperations {
-
-    public class ShapeInfo
+namespace INFOIBV.ShapeOperations
+{
+    public static class Shapes
     {
-        private readonly IList<int> perimeter;
-        private readonly int[] bounding;
-
-        public ShapeInfo(IList<int> perimeter, int[] bounding) 
+        public static List<ShapeInfo> Find(int[,] input, Card card)
         {
-            this.perimeter = perimeter;
-            this.bounding = bounding;
-        }
+            List<ShapeInfo> shapes = new List<ShapeInfo>();
+            card = Rectangles.Shrink(card, 0.75f, 0.9f);
+            int[,] cardContent = Rectangles.CreateMask(input, card);
 
-        public IList<int> Perimeter
-        {
-            get { return perimeter; } 
-        }
-
-        public int X
-        {
-            get { return bounding[0]; }
-        }
-
-        public int Y
-        {
-            get { return bounding[1]; }
-        }
-
-        public int Width
-        {
-            get { return bounding[2] - bounding[0]; }
-        }
-
-        public int Height
-        {
-            get { return bounding[3] - bounding[1]; }
-        }
-
-        public Point Center
-        {
-            get { return new Point(bounding[0] + Width / 2, bounding[1] + Height / 2);}
-        }
-
-        public double Ratio
-        {
-            get { return Height > Width ? Height / Width : Width / Height; }
-        }
-    }
-
-
-    public static class Perimeter {
-
-        public const int NORTH = 0;
-        public const int NORTH_EAST = 1;
-        public const int EAST = 2;
-        public const int SOUTH_EAST = 3;
-        public const int SOUTH = 4;
-        public const int SOUTH_WEST = 5;
-        public const int WEST = 6;
-        public const int NORTH_WEST = 7;
-
-        public static IList<int> WalkPerimeter(int[,] image, int startX, int startY)
-        {
-            IList<int> result = new List<int>();
-            int currentDirection = NORTH_EAST;
-
-            int currX = startX;
-            int currY = startY;
-
-            // Walk until we reach the starting position again
-            do 
+            int objects = 0;
+            for (int y = 0; y < cardContent.GetLength(1); y++)
             {
-                if(currentDirection % 2 == 0) 
+                for (int x = 0; x < cardContent.GetLength(0); x++)
                 {
-                    currentDirection = (currentDirection + 7) % 8;
-                }
-                else
-                {
-                    currentDirection = (currentDirection + 6) % 8;
-                }
-                int startDirection = currentDirection;
-
-                while(!IsPartOfShape(image, currentDirection, currX, currY))
-                {
-                    currentDirection = (currentDirection + 1) % 8; 
-                    if(currentDirection == startDirection)
+                    if (cardContent[x, y] > objects)
                     {
-                        // Gone round, meaning this is a isolated pixel.
-                        return result;
+                        // We found a new object.
+                        objects++;
+
+                        // Calculate properties
+                        IList<int> path = Perimeter.WalkPerimeter(cardContent, x, y);
+                        double length = Perimeter.ComputeLength(path);
+                        double area = Perimeter.ComputeArea(path);
+                        double compactness = area / length;
+                        int[] bounding = Perimeter.BoundingBox(path, x, y);
+
+                        // Create a new ShapeInfo struct.
+                        ShapeInfo info = new ShapeInfo(path, bounding);
+
+                        // Filter invalid shapes.
+                        if (length <= 50 || compactness <= 0.6 || length > 500 || info.Ratio > 2.5)
+                        {
+                            objects--;
+                            Perimeter.Colour(cardContent, x, y, 0);
+                            continue;
+                        }
+
+                        // Colour the shape.
+                        Perimeter.Colour(cardContent, x, y, objects);
+
+                        shapes.Add(info);
                     }
                 }
+            }
 
-                // Append to the path.
-                Position(currentDirection, ref currX, ref currY);
-                //Console.WriteLine("Going {0} [{1}x{2}] - [{3}x{4}]", currentDirection, currX, currY, startX, startY);
-                result.Add(currentDirection);
-            } 
-            while(currX != startX || currY != startY);
-
-            return result;
+            return shapes;
         }
-
-        public static double ComputeLength(IList<int> path) 
+      
+        public static Suit ClassifyShapes(IList<ShapeInfo> shapes)
         {
-            double result = 0;
-            foreach(int direction in path) 
+            if (shapes.Count == 0)
+                return Suit.Unknown;
+
+            double avgSolidity = 0;
+            int count = 0;
+            foreach (ShapeInfo shape in shapes)
             {
-                if(direction % 2 == 0) 
+                // Classify the shape.
+                double area = Perimeter.ComputeArea(shape.Perimeter);
+                double solidity = (shape.Width * shape.Height) / area;
+                if (solidity >= 2)
                 {
-                    result += 1;
+                    // Something very wrong.
+                    continue;
                 }
-                else 
-                {
-                    result += Math.Sqrt(2);
-                }
+                count++;
+                avgSolidity += solidity;
             }
-            return result;
-        }
+            avgSolidity /= count;
 
-        public static double ComputeArea(IList<int> path)
-        {
-            double area = 1;
-            int yLevel = 0;
-
-            foreach(int direction in path) 
+            if (avgSolidity >= 1.72)
             {
-                //area += 1;
-                switch(direction) {
-                case NORTH:
-                    area += 1;
-                    yLevel--;
-                    break;
-                case NORTH_EAST:
-                    yLevel--;
-                    area -= yLevel;
-                    break;
-                case EAST:
-                    area += 1;
-                    area -= yLevel;
-                    break;
-                case SOUTH_EAST:
-                    area -= yLevel;
-                    yLevel++;
-                    break;
-                case SOUTH:
-                    yLevel++;
-                    break;
-                case SOUTH_WEST:
-                    yLevel++;
-                    area += yLevel;
-                    break;
-                case WEST:
-                    area += yLevel;
-                    break;
-                case NORTH_WEST:
-                    area += yLevel;
-                    yLevel--;
-                    break;
-                }
+                return Suit.Diamonds;
             }
-            return area;
-        }
-
-        public static int[] BoundingBox(IList<int> perimeter, int x, int y) 
-        {
-            int minX = x;
-            int minY = y;
-            int maxX = x;
-            int maxY = y;
-
-            foreach(int direction in perimeter) 
+            if (avgSolidity >= 1.59)
             {
-                Position(direction, ref x, ref y);
-                minX = Math.Min(minX, x);
-                minY = Math.Min(minY, y);
-                maxX = Math.Max(maxX, x);
-                maxY = Math.Max(maxY, y);
+                return Suit.Clubs;
             }
-
-            return new int[]{minX, minY, maxX, maxY};
-        }
-
-        public static void Colour(int[,] image, int x, int y, int value)
-        {
-            if(image[x, y] <= value)
-                return;
-            image[x, y] = value;
-            Colour(image, x - 1, y - 1, value);
-            Colour(image, x, y - 1, value);
-            Colour(image, x + 1, y - 1, value);
-            Colour(image, x - 1, y, value);
-            Colour(image, x + 1, y, value);
-            Colour(image, x - 1, y + 1, value);
-            Colour(image, x, y + 1, value);
-            Colour(image, x + 1, y + 1, value);
-        }
-
-
-        public static void Position(int direction, ref int x, ref int y) 
-        {
-            switch(direction) 
+            if (avgSolidity >= 1.42)
             {
-            case NORTH:
-                y -= 1;
-                break;
-            case NORTH_EAST:
-                y -= 1;
-                x += 1;
-                break;
-            case EAST:
-                x += 1;
-                break;
-            case SOUTH_EAST:
-                y += 1;
-                x += 1;
-                break;
-            case SOUTH:
-                y += 1;
-                break;
-            case SOUTH_WEST:
-                y += 1;
-                x -= 1;
-                break;
-            case WEST:
-                x -= 1;
-                break;
-            case NORTH_WEST:
-                y -= 1;
-                x -= 1;
-                break;
+                return Suit.Spades;
             }
-        }
-
-        public static bool IsPartOfShape(int[,] image, int direction, int x, int y)
-        {
-            Position(direction, ref x, ref y);          
-
-            // FIXME: Check bounds
-            return image[x, y] > 0;
+            if (avgSolidity >= 1.25)
+            {
+                return Suit.Hearts;
+            }
+            return Suit.Unknown;
         }
 
     }
+    public enum Suit
+    {
+        Spades,
+        Hearts,
+        Diamonds,
+        Clubs,
+        Unknown
+    }
 }
-

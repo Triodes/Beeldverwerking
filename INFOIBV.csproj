@@ -78,8 +78,10 @@
     <Compile Include="ImageOperations\Window.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ShapeOperations\Shapes.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -100,7 +102,8 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="LineOperations\Lines.cs" />
-    <Compile Include="ShapeOperations\Shapes.cs" />
+    <Compile Include="ShapeOperations\ShapeInfo.cs" />
+    <Compile Include="ShapeOperations\Perimeter.cs" />
     <Compile Include="LineOperations\Rectangles.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

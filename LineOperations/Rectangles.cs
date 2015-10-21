@@ -13,26 +13,28 @@ namespace INFOIBV.LineOperations
         public readonly Point topRight;
         public readonly Point bottomRight;
         public readonly Point bottomLeft;
+        public readonly double ratio;
 
-        public Card(Point topLeft, Point topRight, Point bottomRight, Point bottomLeft) 
+        public Card(Point topLeft, Point topRight, Point bottomRight, Point bottomLeft, double ratio) 
         {
             this.topLeft = topLeft;
             this.topRight = topRight;
             this.bottomRight = bottomRight;
             this.bottomLeft = bottomLeft;
-            Console.WriteLine();
-            Console.WriteLine(topLeft);
-            Console.WriteLine(topRight);
-            Console.WriteLine(bottomRight);
-            Console.WriteLine(bottomLeft);
+            this.ratio = ratio;
+        }
+
+        public void Draw(Graphics g, Pen pen)
+        {
+            g.DrawLine(pen, topLeft, topRight);
+            g.DrawLine(pen, topRight, bottomRight);
+            g.DrawLine(pen, bottomRight, bottomLeft);
+            g.DrawLine(pen, bottomLeft, topLeft);
         }
 
         public void Draw(Graphics g)
         {
-            g.DrawLine(Pens.Cyan, topLeft, topRight);
-            g.DrawLine(Pens.Cyan, topRight, bottomRight);
-            g.DrawLine(Pens.Cyan, bottomRight, bottomLeft);
-            g.DrawLine(Pens.Cyan, bottomLeft, topLeft);
+            Draw(g, Pens.Cyan);
         }
     }
 
@@ -96,7 +98,7 @@ namespace INFOIBV.LineOperations
                 (int)((card.bottomLeft.Y - centerY) * factorY + centerY)
             );
 
-            return new Card(topLeft, topRight, bottomRight, bottomLeft);
+            return new Card(topLeft, topRight, bottomRight, bottomLeft, card.ratio);
         }
     }
 }

@@ -186,7 +186,34 @@ namespace INFOIBV.LineOperations
                             // FIXME: Perhaps look for the most card-like ratio to reduce the amount of found "cards"?
                             if (Math.Abs(ratio - 1.4) <= 0.1)
                             {
-                                result.Add(new Card(a,b,c,d));
+                                if (a.Y < b.Y)
+                                {
+                                    // Line H1 is the upper line.
+                                    if (a.X < c.X)
+                                    {
+                                        // Line V1 is the left line.
+                                        result.Add(new Card(a, c, d, b));
+                                    }
+                                    else
+                                    {
+                                        // Line V2 is the left line.
+                                        result.Add(new Card(c, a, b, d));
+                                    }
+                                }
+                                else
+                                {
+                                    // Line H2 is the upper line.
+                                    if (a.X < c.X)
+                                    {
+                                        // Line V1 is the left line.
+                                        result.Add(new Card(b, d, c, a));
+                                    }
+                                    else
+                                    {
+                                        // Line V2 is the left line.
+                                        result.Add(new Card(d, b, a, c));
+                                    }
+                                }
                             }
                         }
                     }

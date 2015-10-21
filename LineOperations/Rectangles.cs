@@ -14,48 +14,17 @@ namespace INFOIBV.LineOperations
         public readonly Point bottomRight;
         public readonly Point bottomLeft;
 
-        public Card(Point a, Point b, Point c, Point d) 
+        public Card(Point topLeft, Point topRight, Point bottomRight, Point bottomLeft) 
         {
-            if (a.Y < b.Y)
-            {
-                // Line H1 is the upper line.
-                if (a.X < c.X)
-                {
-                    // Line V1 is the left line.
-                    this.topLeft = a;
-                    this.topRight = c;
-                    this.bottomRight = d;
-                    this.bottomLeft = b;
-                }
-                else
-                {
-                    // Line V2 is the left line.
-                    this.topLeft = c;
-                    this.topRight = a;
-                    this.bottomRight = b;
-                    this.bottomLeft = d;
-                }
-            }
-            else
-            {
-                // Line H2 is the upper line.
-                if (a.X < c.X)
-                {
-                    // Line V1 is the left line.
-                    this.topLeft = b;
-                    this.topRight = d;
-                    this.bottomRight = c;
-                    this.bottomLeft = a;
-                }
-                else
-                {
-                    // Line V2 is the left line.
-                    this.topLeft = d;
-                    this.topRight = b;
-                    this.bottomRight = a;
-                    this.bottomLeft = c;
-                }
-            }
+            this.topLeft = topLeft;
+            this.topRight = topRight;
+            this.bottomRight = bottomRight;
+            this.bottomLeft = bottomLeft;
+            Console.WriteLine();
+            Console.WriteLine(topLeft);
+            Console.WriteLine(topRight);
+            Console.WriteLine(bottomRight);
+            Console.WriteLine(bottomLeft);
         }
 
         public void Draw(Graphics g)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 namespace INFOIBV.LineOperations 
@@ -100,7 +101,7 @@ namespace INFOIBV.LineOperations
                 else
                 {
                     // Handle the bucket.
-                    handleBucket(bucket, result);
+                    HandleBucket(bucket, result);
 
                     // Prepare for the other bucket.
                     currentSize = 0;
@@ -109,15 +110,16 @@ namespace INFOIBV.LineOperations
                 }
             }
             // TODO: Handle the last bucket, this will possibly contain duplicates with the first bucket.
-            handleBucket(bucket, result);
+            HandleBucket(bucket, result);
 
             return result;
         }
 
-        public static SortedSet<Line> FindRectangle(SortedSet<Line> input)
+        public static IList<Card> FindRectangle(SortedSet<Line> input)
         {
-            SortedSet<Line> horizontals = new SortedSet<Line>();
-            SortedSet<Line> verticals = new SortedSet<Line>();
+            // Extract the horizontal and vertical lines from the set of lines
+            IList<Line> horizontals = new List<Line>();
+            IList<Line> verticals = new List<Line>();
             foreach (Line line in input)
             {
                 if (line.theta <= 0.15 || Math.Abs(line.theta - Math.PI) <= 0.15)
@@ -125,13 +127,16 @@ namespace INFOIBV.LineOperations
                 if (Math.Abs(line.theta - Math.PI / 2) <= 0.075 && Math.Abs(line.rho) > 25)
                     horizontals.Add(line);
             }
+
+            // Remove duplicate lines caused by the edges of the hough space, namely around 0 and PI.
             SortedSet<Line> toRemove = new SortedSet<Line>();
-            foreach (Line line1 in verticals)
+            for(int v1 = 0; v1 < verticals.Count; v1++) 
             {
-                foreach (Line line2 in verticals)
+                for(int v2 = v1 + 1; v2 < verticals.Count; v2++) 
                 {
-                    if (line1.Equals(line2))
-                        continue;
+                    Line line1 = verticals[v1];
+                    Line line2 = verticals[v2];
+
                     double d = Math.Abs(Math.Abs(line2.rho) - Math.Abs(line1.rho));
                     if (d < 10)
                     {
@@ -149,34 +154,63 @@ namespace INFOIBV.LineOperations
                 verticals.Remove(item);
             }
 
-
-
-            SortedSet<Line> result = new SortedSet<Line>();
-
-            foreach (Line v1 in verticals)
+            // Find the rectangles in the sets of lines
+            IList<Card> result = new List<Card>();
+            for(int v1 = 0; v1 < verticals.Count; v1++) 
             {
-                foreach (Line v2 in verticals)
+                for(int v2 = v1 + 1; v2 < verticals.Count; v2++) 
                 {
-                    if (v1.Equals(v2))
-                        continue;
+                    Line lineV1 = verticals[v1];
+                    Line lineV2 = verticals[v2];
 
-                    foreach (Line h1 in horizontals)
+                    // Loop over the horizontal lines.
+                    for(int h1 = 0; h1 < horizontals.Count; h1++) 
                     {
-                        foreach (Line h2 in horizontals)
+                        for(int h2 = h1 + 1; h2 < horizontals.Count; h2++) 
                         {
-                            if (h1.Equals(h2))
-                                continue;
+                            Line lineH1 = horizontals[h1];
+                            Line lineH2 = horizontals[h2];
 
-                            double dv = Math.Abs(Math.Abs(v1.rho) - Math.Abs(v2.rho));
-                            double dh = Math.Abs(Math.Abs(h1.rho) - Math.Abs(h2.rho));
-                            double ratio = dv / dh;
+                            // Compute intersection points.
+                            Point a = Intersection(lineV1, lineH1);
+                            Point b = Intersection(lineV1, lineH2);
+                            Point c = Intersection(lineV2, lineH1);
+                            Point d = Intersection(lineV2, lineH2);
+                            Console.WriteLine("{0}x{1}", a.X, a.Y);
+                            Console.WriteLine("{0}x{1}", b.X, b.Y);
+                            Console.WriteLine("{0}x{1}", c.X, c.Y);
+                            Console.WriteLine("{0}x{1}", d.X, d.Y);
+
+                            double height1 = Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+                            double height2 = Math.Sqrt((c.X - d.X) * (c.X - d.X) + (c.Y - d.Y) * (c.Y - d.Y));
+                            double width1 = Math.Sqrt((a.X - c.X) * (a.X - c.X) + (a.Y - c.Y) * (a.Y - c.Y));
+                            double width2 = Math.Sqrt((b.X - d.X) * (b.X - d.X) + (b.Y - d.Y) * (b.Y - d.Y));
+
+                            double ratio = ((height1 + height2)/2) / ((width1 + width2)/2);
                             Console.WriteLine("Ratio: " + ratio);
-                            if (ratio > 0.52 && ratio < 0.60)
+                            // FIXME: Perhaps look for the most card-like ratio to reduce the amount of found "cards"?
+                            if (Math.Abs(ratio - 1.4) <= 0.1)
                             {
-                                result.Add(v1);
-                                result.Add(v2);
-                                result.Add(h1);
-                                result.Add(h2);
+                                
+                                if(a.Y < b.Y) {
+                                    // Line H1 is the upper line.
+                                    if(a.X < c.X) {
+                                        // Line V1 is the left line.
+                                        result.Add(new Card(a, c, d, b));
+                                    } else {
+                                        // Line V2 is the left line.
+                                        result.Add(new Card(c, a, b, d));
+                                    }
+                                } else {
+                                    // Line H2 is the upper line.
+                                    if(a.X < c.X) {
+                                        // Line V1 is the left line.
+                                        result.Add(new Card(b, d, c, a));
+                                    } else {
+                                        // Line V2 is the left line.
+                                        result.Add(new Card(d, b, a, c));
+                                    }
+                                }
                             }
                         }
                     }
@@ -186,7 +220,23 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
-        private static void handleBucket(SortedSet<Line> bucket, SortedSet<Line> result)
+        public static Point Intersection(Line one, Line two) 
+        {
+            double a = Math.Cos(one.theta);
+            double b = Math.Sin(one.theta);
+            double c = Math.Cos(two.theta);
+            double d = Math.Sin(two.theta);
+
+            double det = a * d - b * c;
+            if(det == 0.0)
+                return new Point(0, 0);
+
+            int x = (int)((d * one.rho - b * two.rho) / det);
+            int y = (int)((-c * one.rho + a * two.rho) / det);
+            return new Point(x, y);
+        }
+
+        private static void HandleBucket(SortedSet<Line> bucket, SortedSet<Line> result)
         {
             // Loop over the lines and remove close lines.
             double currentRho = -1;

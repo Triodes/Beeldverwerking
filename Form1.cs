@@ -136,79 +136,37 @@ namespace INFOIBV
                 output = Defaults.Normalize(cardContent, 255);
 
                 // 
-                double hearts = 0;
-                double spades = 0;
-                double diamonds = 0;
-                double clubs = 0;
+                String suit = "?";
+                double avgSolidity = 0;
+                int count = 0;
                 foreach(ShapeInfo shape in shapes)
                 {
                     // Classify the shape.
                     int[,] shapeImage = Perimeter.FillArea(original, shape.Perimeter, shape.X, shape.Y);
-                    hearts += Perimeter.Compare(shapeImage, shape, new int[,]
-                        {
-                            {0,1,1,0,1,1,0},
-                            {1,1,1,1,1,1,1},
-                            {0,1,1,1,1,1,0},
-                            {0,1,1,1,1,1,0},
-                            {0,0,1,1,1,0,0},
-                            {0,0,1,1,1,0,0},
-                            {0,0,0,1,0,0,0}
-                        });
-                    spades += Perimeter.Compare(shapeImage, shape, new int[,]
-                        {
-                            {0,0,0,1,0,0,0},
-                            {0,0,1,1,1,0,0},
-                            {0,0,1,1,1,0,0},
-                            {0,1,1,1,1,1,0},
-                            {1,1,1,1,1,1,1},
-                            {0,0,0,1,0,0,0},
-                            {0,0,1,1,1,0,0}
-                        });
-                    diamonds += Perimeter.Compare(shapeImage, shape, new int[,]
-                        {
-                            {0,0,0,1,0,0,0},
-                            {0,0,1,1,1,0,0},
-                            {0,1,1,1,1,1,0},
-                            {1,1,1,1,1,1,1},
-                            {0,1,1,1,1,1,0},
-                            {0,0,1,1,1,0,0},
-                            {0,0,0,1,0,0,0}
-                        });
-                    clubs += Perimeter.Compare(shapeImage, shape, new int[,]
-                        {
-                            {0,0,1,1,1,0,0},
-                            {0,1,1,1,1,1,0},
-                            {0,0,1,1,1,0,0},
-                            {1,1,1,1,1,1,1},
-                            {1,1,1,1,1,1,1},
-                            {0,0,1,1,1,0,0},
-                            {0,0,1,1,1,0,0}
-                        });
+                    double area = Perimeter.ComputeArea(shape.Perimeter);
+                    double solidity = (shape.Width * shape.Height) / area;
+                    if(solidity >= 2) {
+                        // Something very wrong.
+                        continue;
+                    }
+                    count++;
+                    avgSolidity += solidity;
+                    Console.WriteLine("Solidity: {0}", solidity);
                 }
-                hearts /= shapes.Count;
-                spades /= shapes.Count;
-                diamonds /= shapes.Count;
-                clubs /= shapes.Count;
+                avgSolidity /= count;
+                Console.WriteLine("\t\tAVG Solidity: {0}", avgSolidity);
 
-                String suit = "unkown";
-                if(hearts > spades && hearts > diamonds && hearts > clubs)
-                {
-                    suit = "Hearts";
-                }
-                else if(spades > diamonds && spades > clubs)
-                {
-                    suit = "Spades";
-                }
-                else if(diamonds > clubs) {
+                if(avgSolidity >= 1.72) {
                     suit = "Diamonds";
-                }
-                else
-                {
+                } else if(avgSolidity >= 1.59) {
                     suit = "Clubs";
+                } else if(avgSolidity >= 1.42) {
+                    suit = "Spades";
+                } else if(avgSolidity >= 1.25) {
+                    suit = "Hearts";
                 }
 
                 Console.WriteLine("*** It's a card of {0} #{1}", suit, shapes.Count);
-                Console.WriteLine("\tHearts: {0}\n\tSpades: {1}\n\tDiamonds: {2}\n\tClubs: {3}", hearts, spades, diamonds, clubs);
                 //DialogResult result = MessageBox.Show(String.Format());
             }
             else

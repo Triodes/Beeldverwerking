@@ -55,7 +55,7 @@ namespace INFOIBV.ShapeOperations {
     public static class Perimeter {
 
         public const int NORTH = 0;
-        public const int NORHT_EAST = 1;
+        public const int NORTH_EAST = 1;
         public const int EAST = 2;
         public const int SOUTH_EAST = 3;
         public const int SOUTH = 4;
@@ -66,7 +66,7 @@ namespace INFOIBV.ShapeOperations {
         public static IList<int> WalkPerimeter(int[,] image, int startX, int startY)
         {
             IList<int> result = new List<int>();
-            int currentDirection = NORHT_EAST;
+            int currentDirection = NORTH_EAST;
 
             int currX = startX;
             int currY = startY;
@@ -98,7 +98,8 @@ namespace INFOIBV.ShapeOperations {
                 Position(currentDirection, ref currX, ref currY);
                 //Console.WriteLine("Going {0} [{1}x{2}] - [{3}x{4}]", currentDirection, currX, currY, startX, startY);
                 result.Add(currentDirection);
-            } while(currX != startX || currY != startY);
+            } 
+            while(currX != startX || currY != startY);
 
             return result;
         }
@@ -133,7 +134,7 @@ namespace INFOIBV.ShapeOperations {
                     area += 1;
                     yLevel--;
                     break;
-                case NORHT_EAST:
+                case NORTH_EAST:
                     yLevel--;
                     area -= yLevel;
                     break;
@@ -164,105 +165,14 @@ namespace INFOIBV.ShapeOperations {
             return area;
         }
 
-        public static int[,] FillArea(int[,] image, IList<int> path, int x, int y)
-        {
-            double area = 1;
-            int yLevel = 0;
-
-            int width = image.GetLength(0);
-            int height = image.GetLength(1);
-            int[,] result = new int[width, height];
-
-            result[x, y] = 512;
-            foreach(int direction in path) 
-            {
-                Position(direction, ref x, ref y);
-                switch(direction) {
-                case NORTH:
-                    area += 1;
-                    yLevel--;
-                    break;
-                case NORHT_EAST:
-                    yLevel--;
-                    area -= yLevel;
-                    for(int i = 0; i <= y; i++) {
-                        if(result[x - 1, y - i] == 512)
-                            break;
-                        result[x - 1, y - i] = 0;
-                    }
-                    for(int i = 0; i <= y; i++) {
-                        if(result[x, y - i] == 512)
-                            break;
-                        result[x, y - i] = 0;
-                    }
-                    break;
-                case EAST:
-                    area += 1;
-                    area -= yLevel;
-                    for(int i = 0; i <= y; i++) {
-                        if(result[x, y - i] == 512)
-                            break;
-                        result[x, y - i] = 0;
-                    }
-                    break;
-                case SOUTH_EAST:
-                    area -= yLevel;
-                    yLevel++;
-                    for(int i = 0; i <= y; i++) {
-                        if(result[x, y - i] == 512)
-                            break;
-                        result[x, y - i] = 0;
-                    }
-                    break;
-                case SOUTH:
-                    yLevel++;
-                    break;
-                case SOUTH_WEST:
-                    yLevel++;
-                    area += yLevel;
-                    for(int i = 1; i <= y; i++) {
-                        if(result[x, y - i] == 512)
-                            break;
-                        result[x, y - i] = 255;
-                    }
-                    break;
-                case WEST:
-                    area += yLevel;
-                    for(int i = 1; i <= y; i++) {
-                        if(result[x, y - i] == 512)
-                            break;
-                        result[x, y - i] = 255;
-                    }
-                    break;
-                case NORTH_WEST:
-                    area += yLevel;
-                    yLevel--;
-                    for(int i = 0; i <= y; i++) {
-                        if(result[x + 1, y - i] == 512)
-                            break;
-                        result[x + 1, y - i] = 255;
-                    }
-                    for(int i = 1; i <= y; i++) {
-                        if(result[x, y - i] == 512)
-                            break;
-                        result[x, y - i] = 255;
-                    }
-                    break;
-                }
-
-                result[x, y] = 512;
-            }
-            return result;
-        }
-
-        public static int[] BoundingBox(IList<int> path, int x, int y) 
+        public static int[] BoundingBox(IList<int> perimeter, int x, int y) 
         {
             int minX = x;
             int minY = y;
             int maxX = x;
             int maxY = y;
 
-            foreach(int direction in path) 
+            foreach(int direction in perimeter) 
             {
                 Position(direction, ref x, ref y);
                 minX = Math.Min(minX, x);
@@ -274,47 +184,19 @@ namespace INFOIBV.ShapeOperations {
             return new int[]{minX, minY, maxX, maxY};
         }
 
-        public static double Compare(int[,] image, ShapeInfo info, int[,] reference) 
-        {
-            // Iterate over the image.
-            int result = 0;
-
-            int referenceWidth = reference.GetLength(0);
-            int referenceHeight = reference.GetLength(1);
-            double scaleX = info.Width / (double)referenceWidth;
-            double scaleY = info.Height / (double)referenceHeight;
-            for(int x = info.X; x <= info.X + info.Width; x++) 
-            {
-                for(int y = info.Y; y <= info.Y + info.Height; y++) 
-                {
-                    int refX = Math.Min((int)((x - info.X) / scaleX), referenceWidth - 1);
-                    if(refX < 0) refX = 0;
-                    int refY = Math.Min((int)((y - info.Y) / scaleY), referenceHeight - 1);
-                    if(refY < 0) refY = 0;
-
-                    if(image[x, y] > 0)
-                        result += reference[refX, refY] > 0 ? 1 : 0;
-                    else
-                        result += reference[refX, refY] > 0 ? 0 : 1;
-                }
-            }
-
-            return (double)result / ((info.Width + 1) * (info.Height + 1));
-        }
-
-        public static void remove(ref int[,] image, int x, int y, int value)
+        public static void Colour(int[,] image, int x, int y, int value)
         {
             if(image[x, y] <= value)
                 return;
             image[x, y] = value;
-            remove(ref image, x - 1, y - 1, value);
-            remove(ref image, x, y - 1, value);
-            remove(ref image, x + 1, y - 1, value);
-            remove(ref image, x - 1, y, value);
-            remove(ref image, x + 1, y, value);
-            remove(ref image, x - 1, y + 1, value);
-            remove(ref image, x, y + 1, value);
-            remove(ref image, x + 1, y + 1, value);
+            Colour(image, x - 1, y - 1, value);
+            Colour(image, x, y - 1, value);
+            Colour(image, x + 1, y - 1, value);
+            Colour(image, x - 1, y, value);
+            Colour(image, x + 1, y, value);
+            Colour(image, x - 1, y + 1, value);
+            Colour(image, x, y + 1, value);
+            Colour(image, x + 1, y + 1, value);
         }
 
 
@@ -325,7 +207,7 @@ namespace INFOIBV.ShapeOperations {
             case NORTH:
                 y -= 1;
                 break;
-            case NORHT_EAST:
+            case NORTH_EAST:
                 y -= 1;
                 x += 1;
                 break;

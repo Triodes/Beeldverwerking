@@ -124,7 +124,7 @@ namespace INFOIBV.LineOperations
             {
                 if (line.theta <= 0.15 || Math.Abs(line.theta - Math.PI) <= 0.15)
                     verticals.Add(line);
-                if (Math.Abs(line.theta - Math.PI / 2) <= 0.075 && Math.Abs(line.rho) > 25)
+                if (Math.Abs(line.theta - Math.PI / 2) <= 0.075)
                     horizontals.Add(line);
             }
 
@@ -176,10 +176,6 @@ namespace INFOIBV.LineOperations
                             Point b = Intersection(lineV1, lineH2);
                             Point c = Intersection(lineV2, lineH1);
                             Point d = Intersection(lineV2, lineH2);
-                            Console.WriteLine("{0}x{1}", a.X, a.Y);
-                            Console.WriteLine("{0}x{1}", b.X, b.Y);
-                            Console.WriteLine("{0}x{1}", c.X, c.Y);
-                            Console.WriteLine("{0}x{1}", d.X, d.Y);
 
                             double height1 = Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
                             double height2 = Math.Sqrt((c.X - d.X) * (c.X - d.X) + (c.Y - d.Y) * (c.Y - d.Y));
@@ -187,30 +183,10 @@ namespace INFOIBV.LineOperations
                             double width2 = Math.Sqrt((b.X - d.X) * (b.X - d.X) + (b.Y - d.Y) * (b.Y - d.Y));
 
                             double ratio = ((height1 + height2)/2) / ((width1 + width2)/2);
-                            Console.WriteLine("Ratio: " + ratio);
                             // FIXME: Perhaps look for the most card-like ratio to reduce the amount of found "cards"?
                             if (Math.Abs(ratio - 1.4) <= 0.1)
                             {
-                                
-                                if(a.Y < b.Y) {
-                                    // Line H1 is the upper line.
-                                    if(a.X < c.X) {
-                                        // Line V1 is the left line.
-                                        result.Add(new Card(a, c, d, b));
-                                    } else {
-                                        // Line V2 is the left line.
-                                        result.Add(new Card(c, a, b, d));
-                                    }
-                                } else {
-                                    // Line H2 is the upper line.
-                                    if(a.X < c.X) {
-                                        // Line V1 is the left line.
-                                        result.Add(new Card(b, d, c, a));
-                                    } else {
-                                        // Line V2 is the left line.
-                                        result.Add(new Card(d, b, a, c));
-                                    }
-                                }
+                                result.Add(new Card(a,b,c,d));
                             }
                         }
                     }

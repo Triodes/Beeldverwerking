@@ -29,6 +29,11 @@ namespace INFOIBV.LineOperations
                 return rho.CompareTo(other.rho);
             return value.CompareTo(other.value);
         }
+
+        public override string ToString()
+        {
+            return String.Format("Theta: {0}, Rho: {1}, Value: {2}", theta, rho, value);
+        }
     }
 
     public class LineRhoComparer : IComparer<Line>

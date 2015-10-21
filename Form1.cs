@@ -90,7 +90,7 @@ namespace INFOIBV
 
             IList<Card> cards = Lines.FindRectangle(lines);
 
-            output = wth60;
+            output = wth30;
             // Copy array to output Bitmap
             Bitmap outputImage = new Grayscale().ToBitmap(output);
             Graphics g = Graphics.FromImage(outputImage);

@@ -8,18 +8,18 @@ namespace INFOIBV.ShapeOperations
 {
     public class ShapeInfo
     {
-        private readonly IList<int> perimeter;
+        private readonly double area;
         private readonly int[] bounding;
 
-        public ShapeInfo(IList<int> perimeter, int[] bounding)
+        public ShapeInfo(double area, int[] bounding)
         {
-            this.perimeter = perimeter;
+            this.area = area;
             this.bounding = bounding;
         }
 
-        public IList<int> Perimeter
+        public double Area
         {
-            get { return perimeter; }
+            get { return area; }
         }
 
         public int X

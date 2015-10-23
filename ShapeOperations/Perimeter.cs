@@ -62,22 +62,25 @@ namespace INFOIBV.ShapeOperations
         {
             IList<int> result = new List<int>();
 
-            int x = 0;
-            int y = 0;
             int point = NORTH_WEST;
 
-            foreach(int direction in path) {
-                switch(direction) {
+            foreach (int direction in path)
+            {
+                switch (direction)
+                {
                     case NORTH:
-                        if(point == NORTH_EAST) {
+                        if (point == NORTH_EAST)
+                        {
                             result.Add(SOUTH);
                             point = SOUTH_EAST;
                         }
-                        if(point == SOUTH_EAST) {
+                        if (point == SOUTH_EAST)
+                        {
                             result.Add(WEST);
                             point = SOUTH_WEST;
                         }
-                        if(point == SOUTH_WEST) {
+                        if (point == SOUTH_WEST)
+                        {
                             result.Add(NORTH);
                             point = NORTH_WEST;
                         }
@@ -85,19 +88,20 @@ namespace INFOIBV.ShapeOperations
                         // Prepare for next point.
                         result.Add(NORTH);
                         point = NORTH_WEST;
-
-                        y -= 1;
                         break;
                     case NORTH_EAST:
-                        if(point == SOUTH_EAST) {
+                        if (point == SOUTH_EAST)
+                        {
                             result.Add(WEST);
                             point = SOUTH_WEST;
                         }
-                        if(point == SOUTH_WEST) {
+                        if (point == SOUTH_WEST)
+                        {
                             result.Add(NORTH);
                             point = NORTH_WEST;
                         }
-                        if(point == NORTH_WEST) {
+                        if (point == NORTH_WEST)
+                        {
                             result.Add(EAST);
                             point = NORTH_EAST;
                         }
@@ -105,20 +109,20 @@ namespace INFOIBV.ShapeOperations
                         // Perpare for next point.
                         result.Add(NORTH);
                         point = NORTH_WEST;
-
-                        y -= 1;
-                        x += 1;
                         break;
                     case EAST:
-                        if(point == SOUTH_EAST) {
+                        if (point == SOUTH_EAST)
+                        {
                             result.Add(WEST);
                             point = SOUTH_WEST;
                         }
-                        if(point == SOUTH_WEST) {
+                        if (point == SOUTH_WEST)
+                        {
                             result.Add(NORTH);
                             point = NORTH_WEST;
                         }
-                        if(point == NORTH_WEST) {
+                        if (point == NORTH_WEST)
+                        {
                             result.Add(EAST);
                             point = NORTH_EAST;
                         }
@@ -126,19 +130,20 @@ namespace INFOIBV.ShapeOperations
                         // Perpare for next point.
                         result.Add(EAST);
                         point = NORTH_EAST;
-
-                        x += 1;
                         break;
                     case SOUTH_EAST:
-                        if(point == SOUTH_WEST) {
+                        if (point == SOUTH_WEST)
+                        {
                             result.Add(NORTH);
                             point = NORTH_WEST;
                         }
-                        if(point == NORTH_WEST) {
+                        if (point == NORTH_WEST)
+                        {
                             result.Add(EAST);
                             point = NORTH_EAST;
                         }
-                        if(point == NORTH_EAST) {
+                        if (point == NORTH_EAST)
+                        {
                             result.Add(SOUTH);
                             point = SOUTH_EAST;
                         }
@@ -146,20 +151,20 @@ namespace INFOIBV.ShapeOperations
                         // Prepare for next point.
                         result.Add(EAST);
                         point = NORTH_EAST;
-
-                        x += 1;
-                        y += 1;
                         break;
                     case SOUTH:
-                        if(point == SOUTH_WEST) {
+                        if (point == SOUTH_WEST)
+                        {
                             result.Add(NORTH);
                             point = NORTH_WEST;
                         }
-                        if(point == NORTH_WEST) {
+                        if (point == NORTH_WEST)
+                        {
                             result.Add(EAST);
                             point = NORTH_EAST;
                         }
-                        if(point == NORTH_EAST) {
+                        if (point == NORTH_EAST)
+                        {
                             result.Add(SOUTH);
                             point = SOUTH_EAST;
                         }
@@ -167,19 +172,20 @@ namespace INFOIBV.ShapeOperations
                         // Prepare for next point.
                         result.Add(SOUTH);
                         point = SOUTH_EAST;
-
-                        y += 1;
                         break;
                     case SOUTH_WEST:
-                        if(point == NORTH_WEST) {
+                        if (point == NORTH_WEST)
+                        {
                             result.Add(EAST);
                             point = NORTH_EAST;
                         }
-                        if(point == NORTH_EAST) {
+                        if (point == NORTH_EAST)
+                        {
                             result.Add(SOUTH);
                             point = SOUTH_EAST;
                         }
-                        if(point == SOUTH_EAST) {
+                        if (point == SOUTH_EAST)
+                        {
                             result.Add(WEST);
                             point = SOUTH_WEST;
                         }
@@ -187,20 +193,20 @@ namespace INFOIBV.ShapeOperations
                         // Perpare for next point.
                         result.Add(SOUTH);
                         point = SOUTH_EAST;
-
-                        x -= 1;
-                        y += 1;
                         break;
                     case WEST:
-                        if(point == NORTH_WEST) {
+                        if (point == NORTH_WEST)
+                        {
                             result.Add(EAST);
                             point = NORTH_EAST;
                         }
-                        if(point == NORTH_EAST) {
+                        if (point == NORTH_EAST)
+                        {
                             result.Add(SOUTH);
                             point = SOUTH_EAST;
                         }
-                        if(point == SOUTH_EAST) {
+                        if (point == SOUTH_EAST)
+                        {
                             result.Add(WEST);
                             point = SOUTH_WEST;
                         }
@@ -208,29 +214,27 @@ namespace INFOIBV.ShapeOperations
                         // Prepare for next point.
                         result.Add(WEST);
                         point = SOUTH_WEST;
-
-                        x -= 1;
                         break;
                     case NORTH_WEST:
-                        if(point == NORTH_EAST) {
+                        if (point == NORTH_EAST)
+                        {
                             result.Add(SOUTH);
                             point = SOUTH_EAST;
                         }
-                        if(point == SOUTH_EAST) {
+                        if (point == SOUTH_EAST)
+                        {
                             result.Add(WEST);
                             point = SOUTH_WEST;
                         }
-                        if(point == SOUTH_WEST) {
+                        if (point == SOUTH_WEST)
+                        {
                             result.Add(NORTH);
                             point = NORTH_WEST;
                         }
 
                         // Prepare for next point.
                         result.Add(WEST);
-                        point = SOUTH_EAST;
-
-                        x -= 1;
-                        y -= 1;
+                        point = SOUTH_WEST;
                         break;
                 }
             }
@@ -260,21 +264,22 @@ namespace INFOIBV.ShapeOperations
             double area = 0;
             int yLevel = 0;
 
-            foreach(int direction in path) 
+            foreach (int direction in path)
             {
-                switch(direction) {
-                case NORTH:
-                    yLevel--;
-                    break;
-                case EAST:
-                    area -= yLevel;
-                    break;
-                case SOUTH:
-                    yLevel++;
-                    break;
-                case WEST:
-                    area += yLevel;
-                    break;
+                switch (direction)
+                {
+                    case NORTH:
+                        yLevel--;
+                        break;
+                    case EAST:
+                        area -= yLevel;
+                        break;
+                    case SOUTH:
+                        yLevel++;
+                        break;
+                    case WEST:
+                        area += yLevel;
+                        break;
                 }
             }
             return area;
@@ -317,36 +322,36 @@ namespace INFOIBV.ShapeOperations
 
         public static void Position(int direction, ref int x, ref int y) 
         {
-            switch(direction) 
+            switch (direction)
             {
-            case NORTH:
-                y -= 1;
-                break;
-            case NORTH_EAST:
-                y -= 1;
-                x += 1;
-                break;
-            case EAST:
-                x += 1;
-                break;
-            case SOUTH_EAST:
-                y += 1;
-                x += 1;
-                break;
-            case SOUTH:
-                y += 1;
-                break;
-            case SOUTH_WEST:
-                y += 1;
-                x -= 1;
-                break;
-            case WEST:
-                x -= 1;
-                break;
-            case NORTH_WEST:
-                y -= 1;
-                x -= 1;
-                break;
+                case NORTH:
+                    y -= 1;
+                    break;
+                case NORTH_EAST:
+                    y -= 1;
+                    x += 1;
+                    break;
+                case EAST:
+                    x += 1;
+                    break;
+                case SOUTH_EAST:
+                    y += 1;
+                    x += 1;
+                    break;
+                case SOUTH:
+                    y += 1;
+                    break;
+                case SOUTH_WEST:
+                    y += 1;
+                    x -= 1;
+                    break;
+                case WEST:
+                    x -= 1;
+                    break;
+                case NORTH_WEST:
+                    y -= 1;
+                    x -= 1;
+                    break;
             }
         }
 

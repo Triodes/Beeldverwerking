@@ -27,12 +27,12 @@ namespace INFOIBV.ShapeOperations
                         // Calculate properties
                         IList<int> path = Perimeter.WalkPerimeter(cardContent, x, y);
                         double length = Perimeter.ComputeLength(path);
-                        double area = Perimeter.ComputeArea(path);
+                        double area = Perimeter.ComputeArea(Perimeter.To4Connected(path));
                         double compactness = area / length;
                         int[] bounding = Perimeter.BoundingBox(path, x, y);
 
                         // Create a new ShapeInfo struct.
-                        ShapeInfo info = new ShapeInfo(path, bounding);
+                        ShapeInfo info = new ShapeInfo(area, bounding);
 
                         // Filter invalid shapes.
                         if (length <= 50 || compactness <= 0.6 || length > 500 || info.Ratio > 2.5)
@@ -50,20 +50,21 @@ namespace INFOIBV.ShapeOperations
                 }
             }
 
+
             return shapes;
         }
       
-        public static Suit ClassifyShapes(IList<ShapeInfo> shapes)
+        public static Suit ClassifyShapes(IList<ShapeInfo> shapes, out double avgSolidity)
         {
+            avgSolidity = 0;
             if (shapes.Count == 0)
                 return Suit.Unknown;
 
-            double avgSolidity = 0;
             int count = 0;
             foreach (ShapeInfo shape in shapes)
             {
                 // Classify the shape.
-                double area = Perimeter.ComputeArea(shape.Perimeter);
+                double area = shape.Area;
                 double solidity = (shape.Width * shape.Height) / area;
                 if (solidity >= 2)
                 {
@@ -74,6 +75,7 @@ namespace INFOIBV.ShapeOperations
                 avgSolidity += solidity;
             }
             avgSolidity /= count;
+            Console.WriteLine("Solidity: {0}", avgSolidity);
 
             if (avgSolidity >= 1.72)
             {

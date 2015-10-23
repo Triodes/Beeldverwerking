@@ -26,6 +26,8 @@ namespace INFOIBV
             InitializeComponent();
         }
 
+        public static StreamWriter fw;
+
         private void LoadImageButton_Click(object sender, EventArgs e)
         {
             OpenFileDialog openImageDialog = new OpenFileDialog();
@@ -44,11 +46,15 @@ namespace INFOIBV
         {
             if (inputImage == null) return;
             applyButton.Enabled = false;
+            Batch.Enabled = false;
             if (pictureBox2.Image != null) pictureBox2.Image.Dispose();
+
+            fw = new StreamWriter("..\\..\\log.txt");
 
             Bitmap result = Compute(inputImage);
             pictureBox2.Image = (Image)result;
-            
+
+            Batch.Enabled = true;
             applyButton.Enabled = true;
         }
 
@@ -101,7 +107,8 @@ namespace INFOIBV
             {
                 card.Draw(g, Pens.Orange);
                 List<ShapeInfo> shapes = Shapes.Find(wth30, card);
-                Suit suit = Shapes.ClassifyShapes(shapes);
+                double avgSolidity;
+                Suit suit = Shapes.ClassifyShapes(shapes, out avgSolidity);
                 if (suit != Suit.Unknown)
                 {
                     Console.WriteLine("Ratio: " + card.ratio);
@@ -110,6 +117,7 @@ namespace INFOIBV
                     string cardName = String.Format("{0} of {1}", shapes.Count == 1 ? "Ace" : shapes.Count.ToString(), suit);
                     g.DrawString(cardName, new Font("Arial", 14), Brushes.Orange, new PointF(card.bottomLeft.X, card.bottomLeft.Y + 4));
                     Console.WriteLine(cardName);
+                    fw.WriteLine("Card: {0}, Solidity: {1}", cardName, avgSolidity);
                 }
             }
 
@@ -157,6 +165,8 @@ namespace INFOIBV
 
         private void Batch_Click(object sender, EventArgs e)
         {
+            Batch.Enabled = false;
+            applyButton.Enabled = false;
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Multiselect = true;
             dialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.tiff;*.jpeg)|*.bmp;*.jpg;*.png;*.tiff;*.jpeg";
@@ -174,6 +184,8 @@ namespace INFOIBV
 
                 Directory.CreateDirectory(outputDir);
 
+                fw = new StreamWriter(outputDir + "\\log.txt");
+
                 foreach (string fileName in files)
                 {
                     Console.WriteLine("\nProcessing: " + progressBar1.Value + "\n");
@@ -182,7 +194,11 @@ namespace INFOIBV
                     progressBar1.PerformStep();
                 }
 
+                fw.Close();
+
                 progressBar1.Visible = false;
+                Batch.Enabled = true;
+                applyButton.Enabled = true;
             }
         }
     }

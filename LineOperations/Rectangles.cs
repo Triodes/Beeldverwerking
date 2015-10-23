@@ -53,8 +53,11 @@ namespace INFOIBV.LineOperations
                 int x = i % width;
                 int y = i / width;
 
-                bool inside = InsideTriangle(card.topLeft, card.topRight, card.bottomLeft, x, y) 
-                    || InsideTriangle(card.topRight, card.bottomRight, card.bottomLeft, x, y);
+                bool inside = false;
+                inside |= InsideTriangle(card.topLeft, card.topRight, card.bottomRight, x, y);
+                inside |= InsideTriangle(card.topRight, card.bottomRight, card.bottomLeft, x, y);
+                inside |= InsideTriangle(card.bottomRight, card.bottomLeft, card.topLeft, x, y);
+                inside |= InsideTriangle(card.bottomLeft, card.topLeft, card.topRight, x, y);
                 if(inside)
                     result[x, y] = image[x,y];
             });

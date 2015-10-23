@@ -107,7 +107,9 @@ namespace INFOIBV
                     Console.WriteLine("Ratio: " + card.ratio);
                     DrawShapes(shapes, g);
                     card.Draw(g);
-                    g.DrawString(String.Format("{0} of {1}", shapes.Count == 1 ? "Ace" : shapes.Count.ToString(), suit), new Font("Arial", 14), Brushes.Orange, new PointF(card.bottomLeft.X, card.bottomLeft.Y + 4));
+                    string cardName = String.Format("{0} of {1}", shapes.Count == 1 ? "Ace" : shapes.Count.ToString(), suit);
+                    g.DrawString(cardName, new Font("Arial", 14), Brushes.Orange, new PointF(card.bottomLeft.X, card.bottomLeft.Y + 4));
+                    Console.WriteLine(cardName);
                 }
             }
 

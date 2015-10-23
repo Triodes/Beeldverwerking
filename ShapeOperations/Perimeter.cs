@@ -58,6 +58,186 @@ namespace INFOIBV.ShapeOperations
             return result;
         }
 
+        public static IList<int> To4Connected(IList<int> path) 
+        {
+            IList<int> result = new List<int>();
+
+            int x = 0;
+            int y = 0;
+            int point = NORTH_WEST;
+
+            foreach(int direction in path) {
+                switch(direction) {
+                    case NORTH:
+                        if(point == NORTH_EAST) {
+                            result.Add(SOUTH);
+                            point = SOUTH_EAST;
+                        }
+                        if(point == SOUTH_EAST) {
+                            result.Add(WEST);
+                            point = SOUTH_WEST;
+                        }
+                        if(point == SOUTH_WEST) {
+                            result.Add(NORTH);
+                            point = NORTH_WEST;
+                        }
+
+                        // Prepare for next point.
+                        result.Add(NORTH);
+                        point = NORTH_WEST;
+
+                        y -= 1;
+                        break;
+                    case NORTH_EAST:
+                        if(point == SOUTH_EAST) {
+                            result.Add(WEST);
+                            point = SOUTH_WEST;
+                        }
+                        if(point == SOUTH_WEST) {
+                            result.Add(NORTH);
+                            point = NORTH_WEST;
+                        }
+                        if(point == NORTH_WEST) {
+                            result.Add(EAST);
+                            point = NORTH_EAST;
+                        }
+
+                        // Perpare for next point.
+                        result.Add(NORTH);
+                        point = NORTH_WEST;
+
+                        y -= 1;
+                        x += 1;
+                        break;
+                    case EAST:
+                        if(point == SOUTH_EAST) {
+                            result.Add(WEST);
+                            point = SOUTH_WEST;
+                        }
+                        if(point == SOUTH_WEST) {
+                            result.Add(NORTH);
+                            point = NORTH_WEST;
+                        }
+                        if(point == NORTH_WEST) {
+                            result.Add(EAST);
+                            point = NORTH_EAST;
+                        }
+
+                        // Perpare for next point.
+                        result.Add(EAST);
+                        point = NORTH_EAST;
+
+                        x += 1;
+                        break;
+                    case SOUTH_EAST:
+                        if(point == SOUTH_WEST) {
+                            result.Add(NORTH);
+                            point = NORTH_WEST;
+                        }
+                        if(point == NORTH_WEST) {
+                            result.Add(EAST);
+                            point = NORTH_EAST;
+                        }
+                        if(point == NORTH_EAST) {
+                            result.Add(SOUTH);
+                            point = SOUTH_EAST;
+                        }
+
+                        // Prepare for next point.
+                        result.Add(EAST);
+                        point = NORTH_EAST;
+
+                        x += 1;
+                        y += 1;
+                        break;
+                    case SOUTH:
+                        if(point == SOUTH_WEST) {
+                            result.Add(NORTH);
+                            point = NORTH_WEST;
+                        }
+                        if(point == NORTH_WEST) {
+                            result.Add(EAST);
+                            point = NORTH_EAST;
+                        }
+                        if(point == NORTH_EAST) {
+                            result.Add(SOUTH);
+                            point = SOUTH_EAST;
+                        }
+
+                        // Prepare for next point.
+                        result.Add(SOUTH);
+                        point = SOUTH_EAST;
+
+                        y += 1;
+                        break;
+                    case SOUTH_WEST:
+                        if(point == NORTH_WEST) {
+                            result.Add(EAST);
+                            point = NORTH_EAST;
+                        }
+                        if(point == NORTH_EAST) {
+                            result.Add(SOUTH);
+                            point = SOUTH_EAST;
+                        }
+                        if(point == SOUTH_EAST) {
+                            result.Add(WEST);
+                            point = SOUTH_WEST;
+                        }
+
+                        // Perpare for next point.
+                        result.Add(SOUTH);
+                        point = SOUTH_EAST;
+
+                        x -= 1;
+                        y += 1;
+                        break;
+                    case WEST:
+                        if(point == NORTH_WEST) {
+                            result.Add(EAST);
+                            point = NORTH_EAST;
+                        }
+                        if(point == NORTH_EAST) {
+                            result.Add(SOUTH);
+                            point = SOUTH_EAST;
+                        }
+                        if(point == SOUTH_EAST) {
+                            result.Add(WEST);
+                            point = SOUTH_WEST;
+                        }
+
+                        // Prepare for next point.
+                        result.Add(WEST);
+                        point = SOUTH_WEST;
+
+                        x -= 1;
+                        break;
+                    case NORTH_WEST:
+                        if(point == NORTH_EAST) {
+                            result.Add(SOUTH);
+                            point = SOUTH_EAST;
+                        }
+                        if(point == SOUTH_EAST) {
+                            result.Add(WEST);
+                            point = SOUTH_WEST;
+                        }
+                        if(point == SOUTH_WEST) {
+                            result.Add(NORTH);
+                            point = NORTH_WEST;
+                        }
+
+                        // Prepare for next point.
+                        result.Add(WEST);
+                        point = SOUTH_EAST;
+
+                        x -= 1;
+                        y -= 1;
+                        break;
+                }
+            }
+
+            return result;
+        }
+
         public static double ComputeLength(IList<int> path) 
         {
             double result = 0;
@@ -77,42 +257,23 @@ namespace INFOIBV.ShapeOperations
 
         public static double ComputeArea(IList<int> path)
         {
-            double area = 1;
+            double area = 0;
             int yLevel = 0;
 
             foreach(int direction in path) 
             {
-                //area += 1;
                 switch(direction) {
                 case NORTH:
-                    area += 1;
                     yLevel--;
-                    break;
-                case NORTH_EAST:
-                    yLevel--;
-                    area -= yLevel;
                     break;
                 case EAST:
-                    area += 1;
                     area -= yLevel;
-                    break;
-                case SOUTH_EAST:
-                    area -= yLevel;
-                    yLevel++;
                     break;
                 case SOUTH:
                     yLevel++;
                     break;
-                case SOUTH_WEST:
-                    yLevel++;
-                    area += yLevel;
-                    break;
                 case WEST:
                     area += yLevel;
-                    break;
-                case NORTH_WEST:
-                    area += yLevel;
-                    yLevel--;
                     break;
                 }
             }

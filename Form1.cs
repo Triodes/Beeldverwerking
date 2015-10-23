@@ -58,6 +58,15 @@ namespace INFOIBV
 
             int[,] original = new Grayscale().FromBitmap(inputImage);
 
+            if(1 - 1 == 0) {
+                int x = 2;
+                int y = 1;
+                IList<int> perimeter = Perimeter.WalkPerimeter(original, x, y);
+                IList<int> four = Perimeter.To4Connected(perimeter);
+                Console.WriteLine(Perimeter.ComputeArea(four));
+                return new Grayscale().ToBitmap(original);
+            } 
+
             //==========================================================================================
             int[,] edges = new Sobel().Compute(original);
             //edges = Morphologicals.Closing(edges, new bool[,] { { false, true, false }, { true, true, true }, { false, true, false } });

@@ -54,6 +54,8 @@ namespace INFOIBV
             Bitmap result = Compute(inputImage);
             pictureBox2.Image = (Image)result;
 
+            fw.Close();
+
             Batch.Enabled = true;
             applyButton.Enabled = true;
         }
@@ -83,7 +85,7 @@ namespace INFOIBV
             int[,] wth = Defaults.Combine(edges, Morphologicals.Opening(edges, strucElem), (a, b) => a - b);
             //wth = Defaults.Normalize(wth, 255);
             int[,] wth60 = new Threshold(60).Compute(wth);
-            int[,] wth30 = new Threshold(30).Compute(wth);
+            int[,] wth30 = new Threshold(25).Compute(wth);
 
             #region HOUGH
             int[,] hough = new Hough().Compute(wth60, STEP_SIZE);
@@ -94,7 +96,7 @@ namespace INFOIBV
             lines = Lines.FilterLines(lines);
             #endregion
 
-            IList<Card> cards = Lines.FindRectangle(lines);
+            IList<Card> cards = Lines.FindRectangle(new Blur().Compute(wth60), lines);
 
             output = wth30;
             // Copy array to output Bitmap

@@ -11,9 +11,9 @@ namespace INFOIBV.ImageOperations
         {
             int[,] horizontal = Defaults.ApplyKernel(input, new float[,] 
             {
-                {0.0625f, 0.125f, 0.0625f},
-                {0.125f,   0.25f,  0.125f},
-                {0.0625f,   0.125f,  0.0625f}
+                {0.25f, 0.50f, 0.25f},
+                {0.50f, 1.00f, 0.50f},
+                {0.25f, 0.50f, 0.25f}
             });
 
             return horizontal;

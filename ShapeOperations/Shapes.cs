@@ -67,11 +67,6 @@ namespace INFOIBV.ShapeOperations
                 // Classify the shape.
                 double area = shape.Area;
                 double solidity = (shape.Width * shape.Height) / area;
-                if (solidity >= 2)
-                {
-                    // Something very wrong.
-                    continue;
-                }
                 count++;
                 solidities.Add(solidity);
             }

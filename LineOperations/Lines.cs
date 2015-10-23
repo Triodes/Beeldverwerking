@@ -115,12 +115,12 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
-        public static IList<Card> FindRectangle(SortedSet<Line> input)
+        public static IList<Card> FindRectangle(int[,] image, SortedSet<Line> lines)
         {
             // Extract the horizontal and vertical lines from the set of lines
             IList<Line> horizontals = new List<Line>();
             IList<Line> verticals = new List<Line>();
-            foreach (Line line in input)
+            foreach (Line line in lines)
             {
                 if (line.theta <= 0.15 || Math.Abs(line.theta - Math.PI) <= 0.15)
                     verticals.Add(line);
@@ -138,7 +138,7 @@ namespace INFOIBV.LineOperations
                     Line line2 = verticals[v2];
 
                     double d = Math.Abs(Math.Abs(line2.rho) - Math.Abs(line1.rho));
-                    if (d < 10)
+                    if (d < 15)
                     {
                         if (line1.value > line2.value)
                             toRemove.Add(line2);
@@ -172,10 +172,18 @@ namespace INFOIBV.LineOperations
                             Line lineH2 = horizontals[h2];
 
                             // Compute intersection points.
-                            Point a = Intersection(lineV1, lineH1);
-                            Point b = Intersection(lineV1, lineH2);
-                            Point c = Intersection(lineV2, lineH1);
-                            Point d = Intersection(lineV2, lineH2);
+                            Point? s = Intersection(lineV1, lineH1);
+                            Point? u = Intersection(lineV1, lineH2);
+                            Point? v = Intersection(lineV2, lineH1);
+                            Point? w = Intersection(lineV2, lineH2);
+
+                            if (s == null || u == null || v == null || w == null)
+                                continue;
+
+                            Point a = (Point)s;
+                            Point b = (Point)u;
+                            Point c = (Point)v;
+                            Point d = (Point)w;
 
                             double height1 = Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
                             double height2 = Math.Sqrt((c.X - d.X) * (c.X - d.X) + (c.Y - d.Y) * (c.Y - d.Y));
@@ -188,34 +196,9 @@ namespace INFOIBV.LineOperations
                             // FIXME: Perhaps look for the most card-like ratio to reduce the amount of found "cards"?
                             if (Math.Abs(ratio - 1.41) <= 0.13)
                             {
-                                if (a.Y < b.Y)
-                                {
-                                    // Line H1 is the upper line.
-                                    if (a.X < c.X)
-                                    {
-                                        // Line V1 is the left line.
-                                        result.Add(new Card(a, c, d, b, ratio));
-                                    }
-                                    else
-                                    {
-                                        // Line V2 is the left line.
-                                        result.Add(new Card(c, a, b, d, ratio));
-                                    }
-                                }
-                                else
-                                {
-                                    // Line H2 is the upper line.
-                                    if (a.X < c.X)
-                                    {
-                                        // Line V1 is the left line.
-                                        result.Add(new Card(b, d, c, a, ratio));
-                                    }
-                                    else
-                                    {
-                                        // Line V2 is the left line.
-                                        result.Add(new Card(d, b, a, c, ratio));
-                                    }
-                                }
+                                Card card = OrderLines(a, b, c, d, ratio);
+                                if (IsCard(image, card))
+                                    result.Add(card);
                             }
                         }
                     }
@@ -225,7 +208,70 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
-        public static Point Intersection(Line one, Line two) 
+        private static Card OrderLines(Point a, Point b, Point c, Point d, double ratio)
+        {
+            if (a.Y < b.Y)
+            {
+                // Line H1 is the upper line.
+                if (a.X < c.X)
+                {
+                    // Line V1 is the left line.
+                    return new Card(a, c, d, b, ratio);
+                }
+                else
+                {
+                    // Line V2 is the left line.
+                    return new Card(c, a, b, d, ratio);
+                }
+            }
+            else
+            {
+                // Line H2 is the upper line.
+                if (a.X < c.X)
+                {
+                    // Line V1 is the left line.
+                    return new Card(b, d, c, a, ratio);
+                }
+                else
+                {
+                    // Line V2 is the left line.
+                    return new Card(d, b, a, c, ratio);
+                }
+            }
+        }
+
+        private static bool IsCard(int[,] image, Card card)
+        {
+            int threshold = 150;
+            double suppH1 = ComputeLineSegmentSupport(image, card.topLeft, card.topRight);
+            double suppH2 = ComputeLineSegmentSupport(image, card.bottomLeft, card.bottomRight);
+            double suppV1 = ComputeLineSegmentSupport(image, card.topLeft, card.bottomLeft);
+            double suppV2 = ComputeLineSegmentSupport(image, card.topRight, card.bottomRight);
+            return suppH1 > threshold && suppH2 > threshold && suppV1 > threshold && suppV2 > threshold && (suppH1 + suppH2 + suppV1 + suppV2 > 1000);
+        }
+
+        private static double ComputeLineSegmentSupport(int[,] image, Point a, Point b)
+        {
+            int length = (int)Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+            double stepSize = 1.0 / length;
+
+            int support = 0;
+
+            for (int i = 0; i < length; i++)
+            {
+                Point current = Lerp(a,b, i*stepSize);
+                support += image[current.X, current.Y];
+            }
+
+            return (double)support / (double)length;
+        }
+
+        private static Point Lerp(Point a, Point b, double alpha)
+        {
+            return new Point((int)(a.X * (1 - alpha) + b.X * alpha), (int)(a.Y * (1 - alpha) + b.Y * alpha));
+        }
+
+        public static Point? Intersection(Line one, Line two) 
         {
             double a = Math.Cos(one.theta);
             double b = Math.Sin(one.theta);
@@ -238,6 +284,10 @@ namespace INFOIBV.LineOperations
 
             int x = (int)((d * one.rho - b * two.rho) / det);
             int y = (int)((-c * one.rho + a * two.rho) / det);
+
+            if (x < 0 || y < 0)
+                return null;
+
             return new Point(x, y);
         }
 

@@ -115,16 +115,23 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
-        public static IList<Card> FindRectangle(SortedSet<Line> input)
+        public static IList<Card> FindRectangle(SortedSet<Line> input, double verAngle)
         {
             // Extract the horizontal and vertical lines from the set of lines
             IList<Line> horizontals = new List<Line>();
             IList<Line> verticals = new List<Line>();
+
+            double horAngle = verAngle + Math.PI / 2;
             foreach (Line line in input)
             {
-                if (line.theta <= 0.15 || Math.Abs(line.theta - Math.PI) <= 0.15)
-                    verticals.Add(line);
-                if (Math.Abs(line.theta - Math.PI / 2) <= 0.075)
+                if(verAngle == 0) {
+                    if(line.theta <= 0.15 || Math.Abs(line.theta - Math.PI) <= 0.15)
+                        verticals.Add(line);
+                } else {
+                    if(Math.Abs(line.theta - verAngle) <= 0.15)
+                        verticals.Add(line);
+                }
+                if (Math.Abs(line.theta - horAngle) <= 0.075)
                     horizontals.Add(line);
             }
 

@@ -1,6 +1,7 @@
 ﻿using INFOIBV.LineOperations;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 
@@ -54,7 +55,7 @@ namespace INFOIBV.ShapeOperations
             return shapes;
         }
       
-        public static Suit ClassifyShapes(IList<ShapeInfo> shapes, out double avgSolidity)
+        public static Suit ClassifyShapes(IList<ShapeInfo> shapes, Card card, out double avgSolidity)
         {
             List<double> solidities = new List<double>();
             avgSolidity = 0;
@@ -66,7 +67,35 @@ namespace INFOIBV.ShapeOperations
             {
                 // Classify the shape.
                 double area = shape.Area;
-                double solidity = (shape.Width * shape.Height) / area;
+
+                double deltaY = card.bottomRight.Y - card.bottomLeft.Y;
+                double deltaX = card.bottomRight.X - card.bottomLeft.X;
+                double angle = Math.Atan2(deltaY, deltaX);
+
+                int centerX = shape.Center.X;
+                int centerY = shape.Center.Y;
+                Point tl = new Point(shape.X - centerX, shape.Y - centerY);
+                Point tr = new Point(shape.X + shape.Width - centerX, shape.Y - centerY);
+                Point bl = new Point(shape.X - centerX, shape.Y + shape.Height - centerY);
+                Point br = new Point(shape.X + shape.Width - centerX, shape.Y + shape.Height - centerY);
+
+                double tlX = tl.X * Math.Cos(angle) - tl.Y * Math.Sin(angle) + centerX;
+                double tlY = tl.X * Math.Sin(angle) + tl.Y * Math.Cos(angle) + centerY;
+                double trX = tr.X * Math.Cos(angle) - tr.Y * Math.Sin(angle) + centerX;
+                double trY = tr.X * Math.Sin(angle) + tr.Y * Math.Cos(angle) + centerY;
+                double blX = bl.X * Math.Cos(angle) - bl.Y * Math.Sin(angle) + centerX;
+                double blY = bl.X * Math.Sin(angle) + bl.Y * Math.Cos(angle) + centerY;
+                double brX = br.X * Math.Cos(angle) - br.Y * Math.Sin(angle) + centerX;
+                double brY = br.X * Math.Sin(angle) + br.Y * Math.Cos(angle) + centerY;
+                int minX = (int)Enumerable.Min(new double[] { tlX, trX, blX, brX });
+                int minY = (int)Enumerable.Min(new double[] { tlY, trY, blY, brY });
+                int maxX = (int)Enumerable.Max(new double[] { tlX, trX, blX, brX });
+                int maxY = (int)Enumerable.Max(new double[] { tlY, trY, blY, brY });
+
+                int width = maxX - minX;
+                int height = maxY - minY;
+
+                double solidity = (width * height) / area;
                 if (solidity >= 2)
                 {
                     // Something very wrong.
@@ -75,6 +104,8 @@ namespace INFOIBV.ShapeOperations
                 count++;
                 solidities.Add(solidity);
             }
+            if(solidities.Count == 0)
+                return Suit.Unknown;
             solidities.Sort();
             avgSolidity = solidities.Count % 2 == 0 ? (solidities[solidities.Count / 2] + solidities[solidities.Count / 2 - 1]) / 2 : solidities[solidities.Count / 2];
             Console.WriteLine("Solidity: {0}", avgSolidity);

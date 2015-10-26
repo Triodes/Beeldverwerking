@@ -93,8 +93,13 @@ namespace INFOIBV
             SortedSet<Line> lines = Lines.FindLines(hough, STEP_SIZE, maxVal);
             lines = Lines.FilterLines(lines);
             #endregion
-
-            IList<Card> cards = Lines.FindRectangle(lines);
+            IList<Card> cards = new List<Card>();
+            for(int i = 0; i < 12; i++) {
+                double angle = Math.PI / 12 * i;
+                IList<Card> newCards = Lines.FindRectangle(lines, angle);
+                foreach(Card card in newCards)
+                    cards.Add(card);
+            }
 
             output = wth30;
             // Copy array to output Bitmap
@@ -106,13 +111,14 @@ namespace INFOIBV
             foreach (Card card in cards)
             {
                 card.Draw(g, Pens.Orange);
+                Rectangles.Shrink(card, 0.6f, 0.9f).Draw(g, Pens.Lime);
                 List<ShapeInfo> shapes = Shapes.Find(wth30, card);
+                DrawShapes(shapes, g);
                 double avgSolidity;
-                Suit suit = Shapes.ClassifyShapes(shapes, out avgSolidity);
+                Suit suit = Shapes.ClassifyShapes(shapes, card, out avgSolidity);
                 if (suit != Suit.Unknown)
                 {
                     Console.WriteLine("Ratio: " + card.ratio);
-                    DrawShapes(shapes, g);
                     card.Draw(g);
                     string cardName = String.Format("{0} of {1}", shapes.Count == 1 ? "Ace" : shapes.Count.ToString(), suit);
                     g.DrawString(cardName, new Font("Arial", 14), Brushes.Orange, new PointF(card.bottomLeft.X, card.bottomLeft.Y + 4));

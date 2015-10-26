@@ -78,27 +78,33 @@ namespace INFOIBV.LineOperations
         public static Card Shrink(Card card, float factorX, float factorY) 
         {
             // Determine middle point.
-            int centerX = (card.bottomLeft.X + card.bottomRight.X + card.topLeft.X + card.topRight.X) / 4;
-            int centerY = (card.bottomLeft.Y + card.bottomRight.Y + card.topLeft.Y + card.topRight.Y) / 4;
+            //int centerX = (card.bottomLeft.X + card.bottomRight.X + card.topLeft.X + card.topRight.X) / 4;
+            //int centerY = (card.bottomLeft.Y + card.bottomRight.Y + card.topLeft.Y + card.topRight.Y) / 4;
+
+            int topCenterX = (card.topLeft.X + card.topRight.X) / 2;
+            int topCenterY = (card.topLeft.Y + card.topRight.Y) / 2;
+
+            int bottomCenterX = (card.bottomLeft.X + card.bottomRight.X) / 2;
+            int bottomCenterY = (card.bottomLeft.Y + card.bottomRight.Y) / 2;
 
             Point topLeft = new Point(
-                (int)((card.topLeft.X - centerX) * factorX + centerX), 
-                (int)((card.topLeft.Y - centerY) * factorY + centerY)
+                (int)((card.topLeft.X - topCenterX) * factorX + topCenterX), 
+                (int)((card.topLeft.Y - topCenterY) * factorX + topCenterY)
             );
 
             Point topRight = new Point(
-                (int)((card.topRight.X - centerX) * factorX + centerX),
-                (int)((card.topRight.Y - centerY) * factorY + centerY)
+                (int)((card.topRight.X - topCenterX) * factorX + topCenterX),
+                (int)((card.topRight.Y - topCenterY) * factorX + topCenterY)
             );
 
             Point bottomRight = new Point(
-                (int)((card.bottomRight.X - centerX) * factorX + centerX),
-                (int)((card.bottomRight.Y - centerY) * factorY + centerY)
+                (int)((card.bottomRight.X - bottomCenterX) * factorX + bottomCenterX),
+                (int)((card.bottomRight.Y - bottomCenterY) * factorX + bottomCenterY)
             );
 
             Point bottomLeft = new Point(
-                (int)((card.bottomLeft.X - centerX) * factorX + centerX),
-                (int)((card.bottomLeft.Y - centerY) * factorY + centerY)
+                (int)((card.bottomLeft.X - bottomCenterX) * factorX + bottomCenterX),
+                (int)((card.bottomLeft.Y - bottomCenterY) * factorX + bottomCenterY)
             );
 
             return new Card(topLeft, topRight, bottomRight, bottomLeft, card.ratio);

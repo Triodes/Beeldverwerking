@@ -4,10 +4,10 @@ using System.Drawing;
 
 namespace INFOIBV.ShapeOperations 
 {
-    
+    // Class that can
     public static class Perimeter 
     {
-
+        // The various directions in a perimeter
         public const int NORTH = 0;
         public const int NORTH_EAST = 1;
         public const int EAST = 2;

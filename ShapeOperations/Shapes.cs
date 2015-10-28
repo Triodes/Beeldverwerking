@@ -1,4 +1,5 @@
-﻿using INFOIBV.LineOperations;
+﻿using INFOIBV.CardOperations;
+using INFOIBV.LineOperations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,10 @@ namespace INFOIBV.ShapeOperations
             // List holding the discovered shapes
             List<ShapeInfo> shapes = new List<ShapeInfo>();
             // Slightly shrink the card to cut off the edges and the suit/number in the corners of the card
-            card = Rectangles.Shrink(card, 0.75f, 0.9f);
+            card = Cards.Shrink(card, 0.75f, 0.9f);
 
             // Cut out the actual card content, leaving the outside black
-            int[,] cardContent = Rectangles.MaskCard(input, card);
+            int[,] cardContent = Cards.MaskCard(input, card);
 
             // Go over every in pixel in search of objects
             int objects = 0;
@@ -39,7 +40,7 @@ namespace INFOIBV.ShapeOperations
                     double compactness = area / length;
                     int[] bounding = Perimeter.BoundingBox(path, x, y);
 
-                    // Create a new ShapeInfo struct that describes the shape
+                    // Create a new ShapeInfo describing the shape
                     ShapeInfo info = new ShapeInfo(area, bounding);
 
                     // Filter invalid shapes, we assume a valid shape has:

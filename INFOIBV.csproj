@@ -104,7 +104,8 @@
     <Compile Include="LineOperations\Lines.cs" />
     <Compile Include="ShapeOperations\ShapeInfo.cs" />
     <Compile Include="ShapeOperations\Perimeter.cs" />
-    <Compile Include="LineOperations\Rectangles.cs" />
+    <Compile Include="CardOperations\Card.cs" />
+    <Compile Include="CardOperations\Cards.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -135,5 +136,8 @@
       <ProductName>Windows Installer 4.5</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CardOperations\" />
   </ItemGroup>
 </Project>

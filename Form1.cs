@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using INFOIBV.CardOperations;
 using INFOIBV.ImageOperations;
 using INFOIBV.LineOperations;
 using INFOIBV.ShapeOperations;

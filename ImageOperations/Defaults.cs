@@ -12,22 +12,23 @@ namespace INFOIBV.ImageOperations
 
         public static int[,] ApplyKernel(int[,] image, float[,] kernel)
         {
-            // Create a result image the size of the input image.
+            // Create a result image the size of the input image
             int width = image.GetLength(0);
             int height = image.GetLength(1);
             int[,] result = new int[width, height];
+
             // Determine the size and center of the kernel
             int kWidth = kernel.GetLength(0);
             int kHeight = kernel.GetLength(1);
             int halfKWidth = kWidth / 2;
             int halfKHeight = kHeight / 2;
 
-            // Loop over the center pixels for the kernel.
+            // Loop over the center pixels for the kernel
             Parallel.For(0, width * height, i =>
             {
                 int x = i % width;
                 int y = i / width;
-                // Variable holding the new value in the result.
+                // Variable holding the new value in the result
                 int newValue = 0;
 
                 // Go over the kernel
@@ -38,7 +39,7 @@ namespace INFOIBV.ImageOperations
                         float weight = kernel[kx + halfKWidth, ky + halfKHeight];
                         int oldValue;
 
-                        // Perform not padding, not mirroring, but the other
+                        // Perform interpolation
                         int ix = Clamp(x + kx, 0, width - 1);
                         int iy = Clamp(y + ky, 0, height - 1);
                         oldValue = image[ix, iy];
@@ -55,8 +56,9 @@ namespace INFOIBV.ImageOperations
         }
 
         public delegate int PixelArithmetic(int x, int y);
-        public delegate int PixelArithmeticOne(int x);
+        public delegate int PixelFunction(int x);
 
+        // Combines the two images using the given pixelarithmetic
         public static int[,] Combine(int[,] one, int[,] two, PixelArithmetic f)
         {
             int[,] result = new int[one.GetLength(0), one.GetLength(1)];
@@ -70,7 +72,8 @@ namespace INFOIBV.ImageOperations
             return result;
         }
 
-        public static int[,] Compute(int[,] image, PixelArithmeticOne f)
+        // Calculates new pixel values using the given pixel function.
+        public static int[,] Compute(int[,] image, PixelFunction f)
         {
             int[,] result = new int[image.GetLength(0), image.GetLength(1)];
             Parallel.For(0, image.GetLength(0) * image.GetLength(1), i =>
@@ -83,6 +86,7 @@ namespace INFOIBV.ImageOperations
             return result;
         }
 
+        // Finds the lowest and highest value in the image
         private static void FindBounds(int[,] image, out int lower, out int upper)
         {
             lower = 0;
@@ -101,6 +105,7 @@ namespace INFOIBV.ImageOperations
             }
         }
 
+        // Normalizes an image from 0 to the given value
         public static int[,] Normalize(int[,] image, int max = 255)
         {
             int lower, upper;
@@ -121,6 +126,7 @@ namespace INFOIBV.ImageOperations
             return result;
         }
 
+        // Clamps the value between min and max
         public static int Clamp(int val, int lower, int upper)
         {
             return Math.Min(Math.Max(val, lower), upper);

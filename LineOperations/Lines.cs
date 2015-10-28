@@ -20,7 +20,9 @@ namespace INFOIBV.LineOperations
             this.value = value;
         }
 
-        public int CompareTo(Line obj) {
+        // Orders the lines in non decreasing order using theta. Rho is used when theta's are equal. Value is used when theta's and rho's are equal.
+        public int CompareTo(Line obj) 
+        {
             if(obj.GetType() != typeof(Line)) 
                 return 0;
             
@@ -38,10 +40,12 @@ namespace INFOIBV.LineOperations
         }
     }
 
+    // Sorts the lines in non decreasing order using rho. Value is used if rho's are equal.
     public class LineRhoComparer : IComparer<Line>
     {
-        public int Compare(Line a, Line b) {
-            if(a.rho != b.rho)
+        public int Compare(Line a, Line b)
+        {
+            if (a.rho != b.rho)
                 return a.rho.CompareTo(b.rho);
             return a.value.CompareTo(b.value);
         }
@@ -51,6 +55,7 @@ namespace INFOIBV.LineOperations
     {
         private const double BUCKET_SIZE = 5 * Math.PI / 180.0;
 
+        // Creates a set of lines for all non zero values in the hough transform.
         public static SortedSet<Line> FindLines(int[,] image, double stepSize)
         {
             SortedSet<Line> result = new SortedSet<Line>();
@@ -81,6 +86,7 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
+        // Attempts to find loacal maxima in the set of lines.
         public static SortedSet<Line> FilterLines(SortedSet<Line> lines)
         {
             SortedSet<Line> result = new SortedSet<Line>();
@@ -174,31 +180,33 @@ namespace INFOIBV.LineOperations
                             Line lineH2 = horizontals[h2];
 
                             // Compute intersection points.
-                            Point? s = Intersection(lineV1, lineH1);
-                            Point? u = Intersection(lineV1, lineH2);
-                            Point? v = Intersection(lineV2, lineH1);
-                            Point? w = Intersection(lineV2, lineH2);
+                            Point a = Intersection(lineV1, lineH1);
+                            Point b = Intersection(lineV1, lineH2);
+                            Point c = Intersection(lineV2, lineH1);
+                            Point d = Intersection(lineV2, lineH2);
 
-                            if (s == null || u == null || v == null || w == null)
+                            int width = image.GetLength(0);
+                            int height = image.GetLength(1);
+
+                            // Check if intersections are withing the bounds of the image.
+                            if (!IsValidPoint(a, width, height) || !IsValidPoint(b, width, height) || !IsValidPoint(c, width, height) || !IsValidPoint(d, width, height))
                                 continue;
 
-                            Point a = (Point)s;
-                            Point b = (Point)u;
-                            Point c = (Point)v;
-                            Point d = (Point)w;
-
+                            // Compute the lengths of the line segments.
                             double height1 = Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
                             double height2 = Math.Sqrt((c.X - d.X) * (c.X - d.X) + (c.Y - d.Y) * (c.Y - d.Y));
                             double width1 = Math.Sqrt((a.X - c.X) * (a.X - c.X) + (a.Y - c.Y) * (a.Y - c.Y));
                             double width2 = Math.Sqrt((b.X - d.X) * (b.X - d.X) + (b.Y - d.Y) * (b.Y - d.Y));
 
+                            // Approximate the height/width ratio.
                             double ratio = ((height1 + height2)/2) / ((width1 + width2)/2);
-                            Console.WriteLine("\tRatio: " + ratio);
 
                             if (Math.Abs(ratio - 1.43) <= 0.15)
                             {
                                 Card card = OrderLines(a, b, c, d, ratio);
-                                if (IsCard(image, card))
+
+                                // Check if the card has actual support in the image.
+                                if (HasSupport(image, card))
                                     result.Add(card);
                             }
                         }
@@ -241,8 +249,9 @@ namespace INFOIBV.LineOperations
             }
         }
 
-        private static bool IsCard(int[,] image, Card card)
+        private static bool HasSupport(int[,] image, Card card)
         {
+            // Calculate the support for the separate line segments of the card.
             int threshold = 150;
             double suppH1 = ComputeLineSegmentSupport(image, card.topLeft, card.topRight);
             double suppH2 = ComputeLineSegmentSupport(image, card.bottomLeft, card.bottomRight);
@@ -253,17 +262,22 @@ namespace INFOIBV.LineOperations
 
         private static double ComputeLineSegmentSupport(int[,] image, Point a, Point b)
         {
+            // Calculate the segment length.
             int length = (int)Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+
+            // Calculate the stepsize.
             double stepSize = 1.0 / length;
 
             int support = 0;
 
+            // Sum the support for this line.
             for (int i = 0; i < length; i++)
             {
                 Point current = Lerp(a,b, i*stepSize);
                 support += image[current.X, current.Y];
             }
 
+            // Average the support over the length of the line.
             return (double)support / (double)length;
         }
 
@@ -272,8 +286,9 @@ namespace INFOIBV.LineOperations
             return new Point((int)(a.X * (1 - alpha) + b.X * alpha), (int)(a.Y * (1 - alpha) + b.Y * alpha));
         }
 
-        public static Point? Intersection(Line one, Line two) 
+        private static Point Intersection(Line one, Line two) 
         {
+            // Calculates the intersection of 2 lines. Returns null if intersection is out
             double a = Math.Cos(one.theta);
             double b = Math.Sin(one.theta);
             double c = Math.Cos(two.theta);
@@ -286,10 +301,12 @@ namespace INFOIBV.LineOperations
             int x = (int)((d * one.rho - b * two.rho) / det);
             int y = (int)((-c * one.rho + a * two.rho) / det);
 
-            if (x < 0 || y < 0)
-                return null;
-
             return new Point(x, y);
+        }
+
+        private static bool IsValidPoint(Point point, int width, int height)
+        {
+            return point.X >= 0 && point.X < width && point.Y >= 0 && point.Y < height;
         }
 
         private static void HandleBucket(SortedSet<Line> bucket, SortedSet<Line> result)

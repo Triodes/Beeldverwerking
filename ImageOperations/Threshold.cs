@@ -7,6 +7,8 @@ namespace INFOIBV.ImageOperations
 {
     static class Threshold
     {
+
+        // Compute the threshold.
         public static int[,] Compute(int[,] image, int threshold, bool invert = false)
         {
             return Defaults.Compute(image, input =>

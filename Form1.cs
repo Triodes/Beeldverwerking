@@ -27,34 +27,6 @@ namespace INFOIBV
             outputSelector.SelectedIndex = 0;
         }
 
-        private void LoadImageButton_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog openImageDialog = new OpenFileDialog();
-            openImageDialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.jpeg)|*.bmp;*.jpg;*.png;*.jpeg";
-            openImageDialog.InitialDirectory = "..\\..\\images";
-            if (openImageDialog.ShowDialog() == DialogResult.OK)
-            {
-                imageFileName.Text = openImageDialog.FileName;
-                if (inputImage != null) inputImage.Dispose();
-                inputImage = new Bitmap(imageFileName.Text);
-                pictureBox1.Image = (Image) inputImage;
-            }
-        }
-
-        private void ApplyButton_Click(object sender, EventArgs e)
-        {
-            if (inputImage == null) return;
-            applyButton.Enabled = false;
-            Batch.Enabled = false;
-            if (pictureBox2.Image != null) pictureBox2.Image.Dispose();
-
-            Bitmap result = Compute(inputImage);
-            pictureBox2.Image = (Image)result;
-
-            Batch.Enabled = true;
-            applyButton.Enabled = true;
-        }
-
         private Bitmap Compute(Bitmap inputImage)
         {
             // Define output array
@@ -164,14 +136,18 @@ namespace INFOIBV
 
         private void DrawLines(SortedSet<Line> lines, Graphics g, int width, int height)
         {
+            // Draw all the lines
             foreach (Line line in lines)
             {
+                // Check for corner case
                 if (line.theta == 0)
                 {
+                    // If we have a perfect vertical line we have to use a different calculation.
                     g.DrawLine(Pens.Lime, (float)line.rho, 0, (float)line.rho, height);
                 }
                 else
                 {
+                    // Calculate y-values at x=0 and x=width and draw a line between these points.
                     float y0 = (float)(line.rho / Math.Sin(line.theta));
                     float y1 = (float)((line.rho - width * Math.Cos(line.theta)) / Math.Sin(line.theta));
                     g.DrawLine(Pens.Lime, 0, y0, width, y1);
@@ -180,17 +156,49 @@ namespace INFOIBV
         }
 
         private void DrawShapes(List<ShapeInfo> shapes, Graphics g)
-        {            
+        {           
+            // Draw all the shape boundingboxes
             foreach (ShapeInfo shape in shapes)
             {
                 g.DrawRectangle(Pens.Purple, shape.X, shape.Y, shape.Width, shape.Height);
             }
+        }
+
+        private void LoadImageButton_Click(object sender, EventArgs e)
+        {
+            // Load an image
+            OpenFileDialog openImageDialog = new OpenFileDialog();
+            openImageDialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.jpeg)|*.bmp;*.jpg;*.png;*.jpeg";
+            openImageDialog.InitialDirectory = "..\\..\\images";
+            if (openImageDialog.ShowDialog() == DialogResult.OK)
+            {
+                imageFileName.Text = openImageDialog.FileName;
+                if (inputImage != null) inputImage.Dispose();
+                inputImage = new Bitmap(imageFileName.Text);
+                pictureBox1.Image = (Image)inputImage;
+            }
+        }
+
+        private void ApplyButton_Click(object sender, EventArgs e)
+        {
+            // Run the algorithm on the loaded image.
+            if (inputImage == null) return;
+
+            EnableDisableElements(false);
+
+            if (pictureBox2.Image != null) pictureBox2.Image.Dispose();
+
+            Bitmap result = Compute(inputImage);
+            pictureBox2.Image = (Image)result;
+
+            EnableDisableElements(true);
         }
         
         private void saveButton_Click(object sender, EventArgs e)
         {
             if (pictureBox2.Image == null) return;
 
+            // Save outputimage to file.
             SaveFileDialog saveImageDialog = new SaveFileDialog();
             saveImageDialog.Filter = "Bitmap file (*.bmp)|*.bmp";
             saveImageDialog.InitialDirectory = "..\\..\\images";
@@ -200,8 +208,9 @@ namespace INFOIBV
 
         private void Batch_Click(object sender, EventArgs e)
         {
-            Batch.Enabled = false;
-            applyButton.Enabled = false;
+            EnableDisableElements(false);
+
+            // Run the algorithm on multiple images.
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Multiselect = true;
             dialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.jpeg)|*.bmp;*.jpg;*.png;*.jpeg";
@@ -221,16 +230,15 @@ namespace INFOIBV
 
                 foreach (string fileName in files)
                 {
-                    Console.WriteLine("\nProcessing: " + progressBar1.Value + "\n");
                     Bitmap image = new Bitmap(fileName);
                     Compute(image).Save(outputDir + "\\" + progressBar1.Value + ".bmp");
                     progressBar1.PerformStep();
                 }
 
                 progressBar1.Visible = false;
-                Batch.Enabled = true;
-                applyButton.Enabled = true;
             }
+
+            EnableDisableElements(true);
         }
 
         private void outputSelector_SelectedIndexChanged(object sender, EventArgs e)
@@ -241,6 +249,19 @@ namespace INFOIBV
             drawFilteredCheckbox.Enabled = enabled;
             drawFoundCheckbox.Enabled = enabled;
             drawPotentialCheckbox.Enabled = enabled;
+        }
+
+        private void EnableDisableElements(bool enable)
+        {
+            drawBBCheckbox.Enabled = enable;
+            drawFilteredCheckbox.Enabled = enable;
+            drawFoundCheckbox.Enabled = enable;
+            drawPotentialCheckbox.Enabled = enable;
+            outputSelector.Enabled = enable;
+            batchButton.Enabled = enable;
+            applyButton.Enabled = enable;
+            loadButton.Enabled = enable;
+            saveButton.Enabled = enable;
         }
     }
 }

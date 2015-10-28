@@ -193,8 +193,7 @@ namespace INFOIBV.LineOperations
                             double ratio = ((height1 + height2)/2) / ((width1 + width2)/2);
                             Console.WriteLine("\tRatio: " + ratio);
 
-                            // FIXME: Perhaps look for the most card-like ratio to reduce the amount of found "cards"?
-                            if (Math.Abs(ratio - 1.41) <= 0.13)
+                            if (Math.Abs(ratio - 1.43) <= 0.15)
                             {
                                 Card card = OrderLines(a, b, c, d, ratio);
                                 if (IsCard(image, card))

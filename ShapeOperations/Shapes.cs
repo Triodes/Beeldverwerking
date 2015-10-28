@@ -54,10 +54,10 @@ namespace INFOIBV.ShapeOperations
             return shapes;
         }
       
-        public static Suit ClassifyShapes(IList<ShapeInfo> shapes, out double avgSolidity)
+        public static Suit ClassifyShapes(IList<ShapeInfo> shapes, out double meanSolidity)
         {
             List<double> solidities = new List<double>();
-            avgSolidity = 0;
+            meanSolidity = 0;
             if (shapes.Count == 0)
                 return Suit.Unknown;
 
@@ -71,22 +71,22 @@ namespace INFOIBV.ShapeOperations
                 solidities.Add(solidity);
             }
             solidities.Sort();
-            avgSolidity = solidities.Count % 2 == 0 ? (solidities[solidities.Count / 2] + solidities[solidities.Count / 2 - 1]) / 2 : solidities[solidities.Count / 2];
-            Console.WriteLine("Solidity: {0}", avgSolidity);
+            meanSolidity = solidities.Count % 2 == 0 ? (solidities[solidities.Count / 2] + solidities[solidities.Count / 2 - 1]) / 2 : solidities[solidities.Count / 2];
+            Console.WriteLine("Solidity: {0}", meanSolidity);
 
-            if (avgSolidity >= 1.70)
+            if (meanSolidity >= 1.70)
             {
                 return Suit.Diamonds;
             }
-            if (avgSolidity >= 1.57)
+            if (meanSolidity >= 1.57)
             {
                 return Suit.Clubs;
             }
-            if (avgSolidity >= 1.45)
+            if (meanSolidity >= 1.45)
             {
                 return Suit.Spades;
             }
-            if (avgSolidity >= 1.30)
+            if (meanSolidity >= 1.30)
             {
                 return Suit.Hearts;
             }

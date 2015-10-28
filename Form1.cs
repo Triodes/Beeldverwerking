@@ -62,9 +62,18 @@ namespace INFOIBV
             SortedSet<Line> lines = Lines.FindLines(houghWindow, STEP_SIZE);
             lines = Lines.FilterLines(lines);
 
+            strucElem = new bool[,]
+            {
+                {false, false, true, false, false},
+                {false,  true, true,  true, false},
+                { true,  true, true,  true,  true},
+                {false,  true, true,  true, false},
+                {false, false, true, false, false}
+            };
+
             // Find all rectangles that somewhat resemble a card shape
-            int[,] blur = Blur.Compute(wth60);
-            IList<Card> cards = Lines.FindCardShapedRectangles(blur, lines);
+            int[,] dilation = Morphologicals.Dilation(wth60, strucElem);
+            IList<Card> cards = Lines.FindCardShapedRectangles(dilation, lines);
 
             // Set the output image, convert it to a bitmap and create a graphics object so we can draw on it
             switch (outputSelector.SelectedIndex)
@@ -86,7 +95,7 @@ namespace INFOIBV
                     output = wth25;
                     break;
                 case 5:
-                    output = blur;
+                    output = dilation;
                     break;
                 case 6:
                     output = hough;

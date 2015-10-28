@@ -49,10 +49,10 @@
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
-            // LoadImageButton
+            // loadButton
             // 
             this.loadButton.Location = new System.Drawing.Point(12, 12);
-            this.loadButton.Name = "LoadImageButton";
+            this.loadButton.Name = "loadButton";
             this.loadButton.Size = new System.Drawing.Size(98, 23);
             this.loadButton.TabIndex = 0;
             this.loadButton.Text = "Load image...";
@@ -105,10 +105,10 @@
             this.pictureBox2.TabIndex = 5;
             this.pictureBox2.TabStop = false;
             // 
-            // Batch
+            // batchButton
             // 
             this.batchButton.Location = new System.Drawing.Point(592, 11);
-            this.batchButton.Name = "Batch";
+            this.batchButton.Name = "batchButton";
             this.batchButton.Size = new System.Drawing.Size(91, 23);
             this.batchButton.TabIndex = 6;
             this.batchButton.Text = "Batch";
@@ -126,6 +126,8 @@
             // drawFilteredCheckbox
             // 
             this.drawFilteredCheckbox.AutoSize = true;
+            this.drawFilteredCheckbox.Checked = true;
+            this.drawFilteredCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.drawFilteredCheckbox.Location = new System.Drawing.Point(6, 19);
             this.drawFilteredCheckbox.Name = "drawFilteredCheckbox";
             this.drawFilteredCheckbox.Size = new System.Drawing.Size(120, 17);
@@ -136,6 +138,8 @@
             // drawPotentialCheckbox
             // 
             this.drawPotentialCheckbox.AutoSize = true;
+            this.drawPotentialCheckbox.Checked = true;
+            this.drawPotentialCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.drawPotentialCheckbox.Location = new System.Drawing.Point(132, 19);
             this.drawPotentialCheckbox.Name = "drawPotentialCheckbox";
             this.drawPotentialCheckbox.Size = new System.Drawing.Size(138, 17);
@@ -146,6 +150,8 @@
             // drawFoundCheckbox
             // 
             this.drawFoundCheckbox.AutoSize = true;
+            this.drawFoundCheckbox.Checked = true;
+            this.drawFoundCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.drawFoundCheckbox.Location = new System.Drawing.Point(274, 19);
             this.drawFoundCheckbox.Name = "drawFoundCheckbox";
             this.drawFoundCheckbox.Size = new System.Drawing.Size(117, 17);
@@ -156,6 +162,8 @@
             // drawBBCheckbox
             // 
             this.drawBBCheckbox.AutoSize = true;
+            this.drawBBCheckbox.Checked = true;
+            this.drawBBCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.drawBBCheckbox.Location = new System.Drawing.Point(397, 19);
             this.drawBBCheckbox.Name = "drawBBCheckbox";
             this.drawBBCheckbox.Size = new System.Drawing.Size(173, 17);
@@ -186,7 +194,7 @@
             "White top hat",
             "White top hat (threshold 60)",
             "White top hat (threshold 25)",
-            "Line support blur",
+            "Line support dilation",
             "Hough"});
             this.outputSelector.Location = new System.Drawing.Point(6, 15);
             this.outputSelector.Name = "outputSelector";

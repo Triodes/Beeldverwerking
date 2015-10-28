@@ -203,6 +203,7 @@ namespace INFOIBV.LineOperations
 
                             if (Math.Abs(ratio - 1.43) <= 0.15)
                             {
+                                Console.WriteLine("ratio: " + ratio);
                                 Card card = OrderLines(a, b, c, d, ratio);
 
                                 // Check if the card has actual support in the image.
@@ -252,12 +253,12 @@ namespace INFOIBV.LineOperations
         private static bool HasSupport(int[,] image, Card card)
         {
             // Calculate the support for the separate line segments of the card.
-            int threshold = 150;
+            double threshold = 0.80;
             double suppH1 = ComputeLineSegmentSupport(image, card.topLeft, card.topRight);
             double suppH2 = ComputeLineSegmentSupport(image, card.bottomLeft, card.bottomRight);
             double suppV1 = ComputeLineSegmentSupport(image, card.topLeft, card.bottomLeft);
             double suppV2 = ComputeLineSegmentSupport(image, card.topRight, card.bottomRight);
-            return suppH1 > threshold && suppH2 > threshold && suppV1 > threshold && suppV2 > threshold && (suppH1 + suppH2 + suppV1 + suppV2 > 1000);
+            return suppH1 > threshold && suppH2 > threshold && suppV1 > threshold && suppV2 > threshold;
         }
 
         private static double ComputeLineSegmentSupport(int[,] image, Point a, Point b)
@@ -274,7 +275,7 @@ namespace INFOIBV.LineOperations
             for (int i = 0; i < length; i++)
             {
                 Point current = Lerp(a,b, i*stepSize);
-                support += image[current.X, current.Y];
+                support += image[current.X, current.Y] > 0 ? 1 : 0;
             }
 
             // Average the support over the length of the line.
@@ -316,7 +317,7 @@ namespace INFOIBV.LineOperations
             Line? currentBest = null;
             foreach(Line parallelLine in bucket) 
             {
-                if(currentRho != -1 && Math.Abs(currentRho - parallelLine.rho) >= 15) 
+                if(currentRho != -1 && Math.Abs(currentRho - parallelLine.rho) >= 10) 
                 {
                     result.Add(currentBest.Value);
                     currentBest = null;

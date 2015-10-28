@@ -28,13 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.LoadImageButton = new System.Windows.Forms.Button();
+            this.loadButton = new System.Windows.Forms.Button();
             this.imageFileName = new System.Windows.Forms.TextBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.applyButton = new System.Windows.Forms.Button();
             this.saveButton = new System.Windows.Forms.Button();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.Batch = new System.Windows.Forms.Button();
+            this.batchButton = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.drawFilteredCheckbox = new System.Windows.Forms.CheckBox();
             this.drawPotentialCheckbox = new System.Windows.Forms.CheckBox();
@@ -51,13 +51,13 @@
             // 
             // LoadImageButton
             // 
-            this.LoadImageButton.Location = new System.Drawing.Point(12, 12);
-            this.LoadImageButton.Name = "LoadImageButton";
-            this.LoadImageButton.Size = new System.Drawing.Size(98, 23);
-            this.LoadImageButton.TabIndex = 0;
-            this.LoadImageButton.Text = "Load image...";
-            this.LoadImageButton.UseVisualStyleBackColor = true;
-            this.LoadImageButton.Click += new System.EventHandler(this.LoadImageButton_Click);
+            this.loadButton.Location = new System.Drawing.Point(12, 12);
+            this.loadButton.Name = "LoadImageButton";
+            this.loadButton.Size = new System.Drawing.Size(98, 23);
+            this.loadButton.TabIndex = 0;
+            this.loadButton.Text = "Load image...";
+            this.loadButton.UseVisualStyleBackColor = true;
+            this.loadButton.Click += new System.EventHandler(this.LoadImageButton_Click);
             // 
             // imageFileName
             // 
@@ -107,13 +107,13 @@
             // 
             // Batch
             // 
-            this.Batch.Location = new System.Drawing.Point(592, 11);
-            this.Batch.Name = "Batch";
-            this.Batch.Size = new System.Drawing.Size(91, 23);
-            this.Batch.TabIndex = 6;
-            this.Batch.Text = "Batch";
-            this.Batch.UseVisualStyleBackColor = true;
-            this.Batch.Click += new System.EventHandler(this.Batch_Click);
+            this.batchButton.Location = new System.Drawing.Point(592, 11);
+            this.batchButton.Name = "Batch";
+            this.batchButton.Size = new System.Drawing.Size(91, 23);
+            this.batchButton.TabIndex = 6;
+            this.batchButton.Text = "Batch";
+            this.batchButton.UseVisualStyleBackColor = true;
+            this.batchButton.Click += new System.EventHandler(this.Batch_Click);
             // 
             // progressBar1
             // 
@@ -212,13 +212,13 @@
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.progressBar1);
-            this.Controls.Add(this.Batch);
+            this.Controls.Add(this.batchButton);
             this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.saveButton);
             this.Controls.Add(this.applyButton);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.imageFileName);
-            this.Controls.Add(this.LoadImageButton);
+            this.Controls.Add(this.loadButton);
             this.Location = new System.Drawing.Point(10, 10);
             this.Name = "INFOIBV";
             this.ShowIcon = false;
@@ -235,13 +235,13 @@
 
         #endregion
 
-        private System.Windows.Forms.Button LoadImageButton;
+        private System.Windows.Forms.Button loadButton;
         private System.Windows.Forms.TextBox imageFileName;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Button applyButton;
         private System.Windows.Forms.Button saveButton;
         private System.Windows.Forms.PictureBox pictureBox2;
-        private System.Windows.Forms.Button Batch;
+        private System.Windows.Forms.Button batchButton;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.CheckBox drawFilteredCheckbox;
         private System.Windows.Forms.CheckBox drawPotentialCheckbox;

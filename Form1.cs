@@ -34,6 +34,8 @@ namespace INFOIBV
 
             // Get the grayscale image from src
             int[,] grayscale = Grayscale.FromBitmap(inputImage);
+            int width = grayscale.GetLength(0);
+            int height = grayscale.GetLength(1);
 
             // Detect edges using sobel
             int[,] edges = Sobel.Compute(grayscale);
@@ -72,8 +74,11 @@ namespace INFOIBV
             };
 
             // Find all rectangles that somewhat resemble a card shape
+            IList<Card> cards = Lines.FindCardShapedRectangles(lines, width, height);
+
+            // Filter all card shaped rectangles with enough line support
             int[,] dilation = Morphologicals.Dilation(wth60, strucElem);
-            IList<Card> cards = Lines.FindCardShapedRectangles(dilation, lines);
+            IList<Card> filteredCards = Lines.FilterCardShapedRectangles(dilation, cards);
 
             // Set the output image, convert it to a bitmap and create a graphics object so we can draw on it
             switch (outputSelector.SelectedIndex)
@@ -114,10 +119,11 @@ namespace INFOIBV
 
             foreach (Card card in cards)
             {
-                // Draw the potential card
-                if (drawPotentialCheckbox.Checked)
-                    card.Draw(g, Pens.Orange);
+                card.Draw(g,Pens.Orange);
+            }
 
+            foreach (Card card in filteredCards)
+            {
                 List<ShapeInfo> shapes = Shapes.Find(wth25, card);
 
                 if (shapes.Count > 10) continue;

@@ -123,7 +123,7 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
-        public static IList<Card> FindCardShapedRectangles(int[,] image, SortedSet<Line> lines)
+        public static IList<Card> FindCardShapedRectangles(SortedSet<Line> lines, int width, int height)
         {
             // Extract the horizontal and vertical lines from the set of lines
             IList<Line> horizontals = new List<Line>();
@@ -185,9 +185,6 @@ namespace INFOIBV.LineOperations
                             Point c = Intersection(lineV2, lineH1);
                             Point d = Intersection(lineV2, lineH2);
 
-                            int width = image.GetLength(0);
-                            int height = image.GetLength(1);
-
                             // Check if intersections are withing the bounds of the image.
                             if (!IsValidPoint(a, width, height) || !IsValidPoint(b, width, height) || !IsValidPoint(c, width, height) || !IsValidPoint(d, width, height))
                                 continue;
@@ -204,11 +201,9 @@ namespace INFOIBV.LineOperations
                             if (Math.Abs(ratio - 1.43) <= 0.15)
                             {
                                 Console.WriteLine("ratio: " + ratio);
-                                Card card = OrderLines(a, b, c, d, ratio);
+                                Card card = OrderLines(a, b, c, d);
 
-                                // Check if the card has actual support in the image.
-                                if (HasSupport(image, card))
-                                    result.Add(card);
+                                result.Add(card);
                             }
                         }
                     }
@@ -218,7 +213,7 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
-        private static Card OrderLines(Point a, Point b, Point c, Point d, double ratio)
+        private static Card OrderLines(Point a, Point b, Point c, Point d)
         {
             if (a.Y < b.Y)
             {
@@ -248,6 +243,17 @@ namespace INFOIBV.LineOperations
                     return new Card(d, b, a, c);
                 }
             }
+        }
+
+        public static IList<Card> FilterCardShapedRectangles(int[,] image, IList<Card> cards)
+        {
+            List<Card> result = new List<Card>();
+            foreach (Card card in cards)
+            {
+                if (HasSupport(image, card))
+                    result.Add(card);
+            }
+            return result;
         }
 
         private static bool HasSupport(int[,] image, Card card)

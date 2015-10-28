@@ -5,25 +5,14 @@ using System.Text;
 
 namespace INFOIBV.ImageOperations
 {
-    class Window
+    static class Window
     {
-        int lower, upper;
-
-        public Window(int lower, int upper)
+        public static int[,] Compute(int[,] image, int lower, int upper)
         {
-            this.lower = lower;
-            this.upper = upper;
-        }
-
-
-        public int[,] Compute(int[,] image)
-        {
-            return Defaults.Compute(image, ComputeWindow);
-        }
-
-        private int ComputeWindow(int input)
-        {
-            return input < lower || input >= upper ? 0 : input;
+            return Defaults.Compute(image, input =>
+            {
+                return input < lower || input >= upper ? 0 : input;
+            });
         }
     }
 }

@@ -54,10 +54,9 @@ namespace INFOIBV.ShapeOperations
             return shapes;
         }
       
-        public static Suit ClassifyShapes(IList<ShapeInfo> shapes, out double meanSolidity)
+        public static Suit ClassifyShapes(IList<ShapeInfo> shapes)
         {
             List<double> solidities = new List<double>();
-            meanSolidity = 0;
             if (shapes.Count == 0)
                 return Suit.Unknown;
 
@@ -71,7 +70,7 @@ namespace INFOIBV.ShapeOperations
                 solidities.Add(solidity);
             }
             solidities.Sort();
-            meanSolidity = solidities.Count % 2 == 0 ? (solidities[solidities.Count / 2] + solidities[solidities.Count / 2 - 1]) / 2 : solidities[solidities.Count / 2];
+            double meanSolidity = solidities.Count % 2 == 0 ? (solidities[solidities.Count / 2] + solidities[solidities.Count / 2 - 1]) / 2 : solidities[solidities.Count / 2];
             Console.WriteLine("Solidity: {0}", meanSolidity);
 
             if (meanSolidity >= 1.70)

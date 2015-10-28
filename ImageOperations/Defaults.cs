@@ -101,7 +101,7 @@ namespace INFOIBV.ImageOperations
             }
         }
 
-        public static int[,] Normalize(int[,] image, int max)
+        public static int[,] Normalize(int[,] image, int max = 255)
         {
             int lower, upper;
             FindBounds(image, out lower, out upper);

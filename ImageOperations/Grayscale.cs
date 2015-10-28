@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace INFOIBV.ImageOperations
 {
-    class Grayscale
+    static class Grayscale
     {
         
-        public int[,] FromBitmap(Bitmap input)
+        public static int[,] FromBitmap(Bitmap input)
         {
             int width = input.Width;
             int height = input.Height;
@@ -59,7 +59,7 @@ namespace INFOIBV.ImageOperations
             return result;
         }
 
-        public Bitmap ToBitmap(int[,] input)
+        public static Bitmap ToBitmap(int[,] input)
         {
             int width = input.GetLength(0);
             int height = input.GetLength(1);

@@ -5,9 +5,9 @@ using System.Text;
 
 namespace INFOIBV.ImageOperations
 {
-    class Blur
+    static class Blur
     {
-        public int[,] Compute(int[,] input)
+        public static int[,] Compute(int[,] input)
         {
             int[,] horizontal = Defaults.ApplyKernel(input, new float[,] 
             {

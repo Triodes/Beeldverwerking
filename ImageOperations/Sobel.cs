@@ -5,9 +5,9 @@ using System.Text;
 
 namespace INFOIBV.ImageOperations
 {
-    class Sobel
+    static class Sobel
     {
-        public int[,] Compute(int[,] input)
+        public static int[,] Compute(int[,] input)
         {
             int[,] horizontal = Defaults.ApplyKernel(input, new float[,] 
             {

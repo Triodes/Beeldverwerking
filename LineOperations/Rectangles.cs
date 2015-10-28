@@ -13,15 +13,13 @@ namespace INFOIBV.LineOperations
         public readonly Point topRight;
         public readonly Point bottomRight;
         public readonly Point bottomLeft;
-        public readonly double ratio;
 
-        public Card(Point topLeft, Point topRight, Point bottomRight, Point bottomLeft, double ratio) 
+        public Card(Point topLeft, Point topRight, Point bottomRight, Point bottomLeft) 
         {
             this.topLeft = topLeft;
             this.topRight = topRight;
             this.bottomRight = bottomRight;
             this.bottomLeft = bottomLeft;
-            this.ratio = ratio;
         }
 
         public void Draw(Graphics g, Pen pen)
@@ -101,7 +99,7 @@ namespace INFOIBV.LineOperations
                 (int)((card.bottomLeft.Y - centerY) * factorY + centerY)
             );
 
-            return new Card(topLeft, topRight, bottomRight, bottomLeft, card.ratio);
+            return new Card(topLeft, topRight, bottomRight, bottomLeft);
         }
     }
 }

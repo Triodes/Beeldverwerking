@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace INFOIBV.ImageOperations
 {
-    class Hough
+    static class Hough
     {
-        public int[,] Compute(int[,] image, double stepSize)
+        public static int[,] Compute(int[,] image, double stepSize)
         {
             int width = image.GetLength(0);
             int height = image.GetLength(1);

@@ -19,19 +19,17 @@ namespace INFOIBV
     public partial class INFOIBV : Form
     {
         private Bitmap inputImage;
-        private const double STEP_SIZE = 0.25;
 
         public INFOIBV()
         {
             InitializeComponent();
+            outputSelector.SelectedIndex = 0;
         }
-
-        public static StreamWriter fw;
 
         private void LoadImageButton_Click(object sender, EventArgs e)
         {
             OpenFileDialog openImageDialog = new OpenFileDialog();
-            openImageDialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.tiff;*.jpeg)|*.bmp;*.jpg;*.png;*.tiff;*.jpeg";
+            openImageDialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.jpeg)|*.bmp;*.jpg;*.png;*.jpeg";
             openImageDialog.InitialDirectory = "..\\..\\images";
             if (openImageDialog.ShowDialog() == DialogResult.OK)
             {
@@ -49,12 +47,8 @@ namespace INFOIBV
             Batch.Enabled = false;
             if (pictureBox2.Image != null) pictureBox2.Image.Dispose();
 
-            fw = new StreamWriter("..\\..\\log.txt");
-
             Bitmap result = Compute(inputImage);
             pictureBox2.Image = (Image)result;
-
-            fw.Close();
 
             Batch.Enabled = true;
             applyButton.Enabled = true;
@@ -62,16 +56,15 @@ namespace INFOIBV
 
         private Bitmap Compute(Bitmap inputImage)
         {
+            // Define output array
             int[,] output;
 
-            int[,] original = new Grayscale().FromBitmap(inputImage);
+            // Get the grayscale image from src
+            int[,] grayscale = Grayscale.FromBitmap(inputImage);
 
-            //==========================================================================================
-            int[,] edges = new Sobel().Compute(original);
-            //edges = Morphologicals.Closing(edges, new bool[,] { { false, true, false }, { true, true, true }, { false, true, false } });
-            //edges = new Window(20, int.MaxValue).Compute(edges);
+            // Detect edges using sobel
+            int[,] edges = Sobel.Compute(grayscale);
 
-            //int[,] mask = new Threshold(THRESHOLD,true).Compute(original);
 
             bool[,] strucElem = 
             {
@@ -80,68 +73,107 @@ namespace INFOIBV
                 {false, true, false}
             };
 
-            //int[,] reconstruction = Morphologicals.GeoDilation(edges, strucElem, mask);
-
+            // Calculate white top-hat (WTH) with plus-shaped structuring element
             int[,] wth = Defaults.Combine(edges, Morphologicals.Opening(edges, strucElem), (a, b) => a - b);
-            //wth = Defaults.Normalize(wth, 255);
-            int[,] wth60 = new Threshold(60).Compute(wth);
-            int[,] wth30 = new Threshold(25).Compute(wth);
 
-            #region HOUGH
-            int[,] hough = new Hough().Compute(wth60, STEP_SIZE);
-            //hough = Defaults.Normalize(hough, 255);
-            hough = new Window(20000, int.MaxValue).Compute(hough);
-            int maxVal = (int)Math.Ceiling(Math.Sqrt(edges.GetLength(0) * edges.GetLength(0) + edges.GetLength(1) * edges.GetLength(1)));
-            SortedSet<Line> lines = Lines.FindLines(hough, STEP_SIZE, maxVal);
+            // Create thresholds from the WTH
+            int[,] wth60 = Threshold.Compute(wth, 60);
+            int[,] wth25 = Threshold.Compute(wth, 25);
+
+            // Calculate Hough transform
+            const double STEP_SIZE = 0.25;
+            int[,] hough = Hough.Compute(wth60, STEP_SIZE);
+            int[,] houghWindow = Window.Compute(hough,20000,int.MaxValue);
+
+            // Find and filter lines from hough transform
+            SortedSet<Line> lines = Lines.FindLines(houghWindow, STEP_SIZE);
             lines = Lines.FilterLines(lines);
-            #endregion
 
-            IList<Card> cards = Lines.FindRectangle(new Blur().Compute(wth60), lines);
+            // Find all rectangles that somewhat resemble a card shape
+            int[,] blur = Blur.Compute(wth60);
+            IList<Card> cards = Lines.FindCardShapedRectangles(blur, lines);
 
-            output = wth30;
-            // Copy array to output Bitmap
-            Bitmap outputImage = new Grayscale().ToBitmap(output);
+            // Set the output image, convert it to a bitmap and create a graphics object so we can draw on it
+            switch (outputSelector.SelectedIndex)
+            {
+                default:
+                case 0:
+                    output = grayscale;
+                    break;
+                case 1:
+                    output = edges;
+                    break;
+                case 2:
+                    output = wth;
+                    break;
+                case 3:
+                    output = wth60;
+                    break;
+                case 4:
+                    output = wth25;
+                    break;
+                case 5:
+                    output = blur;
+                    break;
+                case 6:
+                    output = hough;
+                    break;
+            }
+            Bitmap outputImage = Grayscale.ToBitmap(Defaults.Normalize(output));
+
+            if (output == hough)
+                return outputImage;
+
             Graphics g = Graphics.FromImage(outputImage);
 
-            DrawLines(lines, outputImage);
+            // Draw the filtered lines
+            if (drawFilteredCheckbox.Checked)
+                DrawLines(lines, g, outputImage.Width, outputImage.Height);
 
             foreach (Card card in cards)
             {
-                card.Draw(g, Pens.Orange);
-                List<ShapeInfo> shapes = Shapes.Find(wth30, card);
-                double avgSolidity;
-                Suit suit = Shapes.ClassifyShapes(shapes, out avgSolidity);
+                // Draw the potential card
+                if (drawPotentialCheckbox.Checked)
+                    card.Draw(g, Pens.Orange);
+
+                List<ShapeInfo> shapes = Shapes.Find(wth25, card);
+
+                if (shapes.Count > 10) continue;
+
+                Suit suit = Shapes.ClassifyShapes(shapes);
                 if (suit != Suit.Unknown)
                 {
-                    Console.WriteLine("Ratio: " + card.ratio);
-                    DrawShapes(shapes, g);
-                    card.Draw(g);
+                    // Draw the bboxes of the shapes
+                    if (drawBBCheckbox.Checked)
+                        DrawShapes(shapes, g);
+
+                    // Draw the card outline
+                    if (drawFoundCheckbox.Checked)
+                        card.Draw(g);
+
+                    // Format the card name and print it on the card
                     string cardName = String.Format("{0} of {1}", shapes.Count == 1 ? "Ace" : shapes.Count.ToString(), suit);
                     g.DrawString(cardName, new Font("Arial", 14), Brushes.Orange, new PointF(card.bottomLeft.X, card.bottomLeft.Y + 4));
+
                     Console.WriteLine(cardName);
-                    fw.WriteLine("Card: {0}, Solidity: {1}", cardName, avgSolidity);
                 }
             }
-
-
-
             return outputImage;
         }
 
-        private void DrawLines(SortedSet<Line> lines, Bitmap outputImage)
+        private void DrawLines(SortedSet<Line> lines, Graphics g, int width, int height)
         {
-            Graphics g = Graphics.FromImage(outputImage);
             foreach (Line line in lines)
             {
                 if (line.theta == 0)
                 {
-                    g.DrawLine(Pens.Lime, (float)line.rho, 0, (float)line.rho, outputImage.Height);
+                    g.DrawLine(Pens.Lime, (float)line.rho, 0, (float)line.rho, height);
                 }
                 else
                 {
                     float y0 = (float)(line.rho / Math.Sin(line.theta));
-                    float y1 = (float)((line.rho - outputImage.Width * Math.Cos(line.theta)) / Math.Sin(line.theta));
-                    g.DrawLine(Pens.Lime, 0, y0, outputImage.Width, y1);
+                    float y1 = (float)((line.rho - width * Math.Cos(line.theta)) / Math.Sin(line.theta));
+                    g.DrawLine(Pens.Lime, 0, y0, width, y1);
                 }
             }
         }
@@ -171,7 +203,7 @@ namespace INFOIBV
             applyButton.Enabled = false;
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Multiselect = true;
-            dialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.tiff;*.jpeg)|*.bmp;*.jpg;*.png;*.tiff;*.jpeg";
+            dialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.jpeg)|*.bmp;*.jpg;*.png;*.jpeg";
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 string[] files = dialog.FileNames;
@@ -186,8 +218,6 @@ namespace INFOIBV
 
                 Directory.CreateDirectory(outputDir);
 
-                fw = new StreamWriter(outputDir + "\\log.txt");
-
                 foreach (string fileName in files)
                 {
                     Console.WriteLine("\nProcessing: " + progressBar1.Value + "\n");
@@ -196,12 +226,20 @@ namespace INFOIBV
                     progressBar1.PerformStep();
                 }
 
-                fw.Close();
-
                 progressBar1.Visible = false;
                 Batch.Enabled = true;
                 applyButton.Enabled = true;
             }
+        }
+
+        private void outputSelector_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            bool enabled = outputSelector.SelectedIndex != 6;
+
+            drawBBCheckbox.Enabled = enabled;
+            drawFilteredCheckbox.Enabled = enabled;
+            drawFoundCheckbox.Enabled = enabled;
+            drawPotentialCheckbox.Enabled = enabled;
         }
     }
 }

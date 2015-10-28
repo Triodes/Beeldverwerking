@@ -50,12 +50,13 @@ namespace INFOIBV.LineOperations
     {
         private const double BUCKET_SIZE = 5 * Math.PI / 180.0;
 
-        public static SortedSet<Line> FindLines(int[,] image, double stepSize, int maxVal)
+        public static SortedSet<Line> FindLines(int[,] image, double stepSize)
         {
             SortedSet<Line> result = new SortedSet<Line>();
 
             int width = image.GetLength(0);
             int height = image.GetLength(1);
+            int maxVal = (height - 1) / 2;
 
             // Loop over the hough image.
             for (int step = 0; step < width; step++)
@@ -115,7 +116,7 @@ namespace INFOIBV.LineOperations
             return result;
         }
 
-        public static IList<Card> FindRectangle(int[,] image, SortedSet<Line> lines)
+        public static IList<Card> FindCardShapedRectangles(int[,] image, SortedSet<Line> lines)
         {
             // Extract the horizontal and vertical lines from the set of lines
             IList<Line> horizontals = new List<Line>();
@@ -215,12 +216,12 @@ namespace INFOIBV.LineOperations
                 if (a.X < c.X)
                 {
                     // Line V1 is the left line.
-                    return new Card(a, c, d, b, ratio);
+                    return new Card(a, c, d, b);
                 }
                 else
                 {
                     // Line V2 is the left line.
-                    return new Card(c, a, b, d, ratio);
+                    return new Card(c, a, b, d);
                 }
             }
             else
@@ -229,12 +230,12 @@ namespace INFOIBV.LineOperations
                 if (a.X < c.X)
                 {
                     // Line V1 is the left line.
-                    return new Card(b, d, c, a, ratio);
+                    return new Card(b, d, c, a);
                 }
                 else
                 {
                     // Line V2 is the left line.
-                    return new Card(d, b, a, c, ratio);
+                    return new Card(d, b, a, c);
                 }
             }
         }

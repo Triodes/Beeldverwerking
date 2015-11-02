@@ -117,11 +117,16 @@ namespace INFOIBV
             if (drawFilteredCheckbox.Checked)
                 DrawLines(lines, g, outputImage.Width, outputImage.Height);
 
-            foreach (Card card in cards)
+            // Draw the potential cards (card-shaped rectangles)
+            if(drawPotentialCheckbox.Checked)
             {
-                card.Draw(g,Pens.Orange);
+                foreach (Card card in cards)
+                {
+                    card.Draw(g,Pens.Orange);
+                }
             }
 
+            // Classify and draw all filtered cards
             foreach (Card card in filteredCards)
             {
                 List<ShapeInfo> shapes = Shapes.Find(wth25, card);

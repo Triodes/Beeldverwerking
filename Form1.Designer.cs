@@ -36,11 +36,12 @@
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.batchButton = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.drawFilteredCheckbox = new System.Windows.Forms.CheckBox();
-            this.drawPotentialCheckbox = new System.Windows.Forms.CheckBox();
-            this.drawFoundCheckbox = new System.Windows.Forms.CheckBox();
+            this.drawFilteredLinesCheckbox = new System.Windows.Forms.CheckBox();
+            this.drawFoundRectanglesCheckbox = new System.Windows.Forms.CheckBox();
+            this.drawFoundCardsCheckbox = new System.Windows.Forms.CheckBox();
             this.drawBBCheckbox = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.drawFilteredRectanglesCheckbox = new System.Windows.Forms.CheckBox();
             this.outputSelector = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -51,7 +52,7 @@
             // 
             // loadButton
             // 
-            this.loadButton.Location = new System.Drawing.Point(12, 12);
+            this.loadButton.Location = new System.Drawing.Point(113, 11);
             this.loadButton.Name = "loadButton";
             this.loadButton.Size = new System.Drawing.Size(98, 23);
             this.loadButton.TabIndex = 0;
@@ -61,10 +62,10 @@
             // 
             // imageFileName
             // 
-            this.imageFileName.Location = new System.Drawing.Point(116, 14);
+            this.imageFileName.Location = new System.Drawing.Point(217, 13);
             this.imageFileName.Name = "imageFileName";
             this.imageFileName.ReadOnly = true;
-            this.imageFileName.Size = new System.Drawing.Size(361, 20);
+            this.imageFileName.Size = new System.Drawing.Size(325, 20);
             this.imageFileName.TabIndex = 1;
             // 
             // pictureBox1
@@ -78,7 +79,7 @@
             // 
             // applyButton
             // 
-            this.applyButton.Location = new System.Drawing.Point(483, 11);
+            this.applyButton.Location = new System.Drawing.Point(548, 11);
             this.applyButton.Name = "applyButton";
             this.applyButton.Size = new System.Drawing.Size(103, 23);
             this.applyButton.TabIndex = 3;
@@ -88,7 +89,7 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(948, 11);
+            this.saveButton.Location = new System.Drawing.Point(12, 11);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(95, 23);
             this.saveButton.TabIndex = 4;
@@ -107,7 +108,7 @@
             // 
             // batchButton
             // 
-            this.batchButton.Location = new System.Drawing.Point(592, 11);
+            this.batchButton.Location = new System.Drawing.Point(657, 11);
             this.batchButton.Name = "batchButton";
             this.batchButton.Size = new System.Drawing.Size(91, 23);
             this.batchButton.TabIndex = 6;
@@ -117,46 +118,46 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(689, 11);
+            this.progressBar1.Location = new System.Drawing.Point(754, 11);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(253, 23);
+            this.progressBar1.Size = new System.Drawing.Size(286, 23);
             this.progressBar1.TabIndex = 7;
             this.progressBar1.Visible = false;
             // 
-            // drawFilteredCheckbox
+            // drawFilteredLinesCheckbox
             // 
-            this.drawFilteredCheckbox.AutoSize = true;
-            this.drawFilteredCheckbox.Location = new System.Drawing.Point(6, 19);
-            this.drawFilteredCheckbox.Name = "drawFilteredCheckbox";
-            this.drawFilteredCheckbox.Size = new System.Drawing.Size(120, 17);
-            this.drawFilteredCheckbox.TabIndex = 8;
-            this.drawFilteredCheckbox.Text = "Filtered lines (green)";
-            this.drawFilteredCheckbox.UseVisualStyleBackColor = true;
+            this.drawFilteredLinesCheckbox.AutoSize = true;
+            this.drawFilteredLinesCheckbox.Location = new System.Drawing.Point(6, 19);
+            this.drawFilteredLinesCheckbox.Name = "drawFilteredLinesCheckbox";
+            this.drawFilteredLinesCheckbox.Size = new System.Drawing.Size(120, 17);
+            this.drawFilteredLinesCheckbox.TabIndex = 8;
+            this.drawFilteredLinesCheckbox.Text = "Filtered lines (green)";
+            this.drawFilteredLinesCheckbox.UseVisualStyleBackColor = true;
             // 
-            // drawPotentialCheckbox
+            // drawFoundRectanglesCheckbox
             // 
-            this.drawPotentialCheckbox.AutoSize = true;
-            this.drawPotentialCheckbox.Location = new System.Drawing.Point(132, 19);
-            this.drawPotentialCheckbox.Name = "drawPotentialCheckbox";
-            this.drawPotentialCheckbox.Size = new System.Drawing.Size(138, 17);
-            this.drawPotentialCheckbox.TabIndex = 9;
-            this.drawPotentialCheckbox.Text = "Potential cards (orange)";
-            this.drawPotentialCheckbox.UseVisualStyleBackColor = true;
+            this.drawFoundRectanglesCheckbox.AutoSize = true;
+            this.drawFoundRectanglesCheckbox.Location = new System.Drawing.Point(132, 19);
+            this.drawFoundRectanglesCheckbox.Name = "drawFoundRectanglesCheckbox";
+            this.drawFoundRectanglesCheckbox.Size = new System.Drawing.Size(146, 17);
+            this.drawFoundRectanglesCheckbox.TabIndex = 9;
+            this.drawFoundRectanglesCheckbox.Text = "Found rectangles (yellow)";
+            this.drawFoundRectanglesCheckbox.UseVisualStyleBackColor = true;
             // 
-            // drawFoundCheckbox
+            // drawFoundCardsCheckbox
             // 
-            this.drawFoundCheckbox.AutoSize = true;
-            this.drawFoundCheckbox.Location = new System.Drawing.Point(274, 19);
-            this.drawFoundCheckbox.Name = "drawFoundCheckbox";
-            this.drawFoundCheckbox.Size = new System.Drawing.Size(117, 17);
-            this.drawFoundCheckbox.TabIndex = 10;
-            this.drawFoundCheckbox.Text = "Found cards (cyan)";
-            this.drawFoundCheckbox.UseVisualStyleBackColor = true;
+            this.drawFoundCardsCheckbox.AutoSize = true;
+            this.drawFoundCardsCheckbox.Location = new System.Drawing.Point(426, 19);
+            this.drawFoundCardsCheckbox.Name = "drawFoundCardsCheckbox";
+            this.drawFoundCardsCheckbox.Size = new System.Drawing.Size(117, 17);
+            this.drawFoundCardsCheckbox.TabIndex = 10;
+            this.drawFoundCardsCheckbox.Text = "Found cards (cyan)";
+            this.drawFoundCardsCheckbox.UseVisualStyleBackColor = true;
             // 
             // drawBBCheckbox
             // 
             this.drawBBCheckbox.AutoSize = true;
-            this.drawBBCheckbox.Location = new System.Drawing.Point(397, 19);
+            this.drawBBCheckbox.Location = new System.Drawing.Point(549, 19);
             this.drawBBCheckbox.Name = "drawBBCheckbox";
             this.drawBBCheckbox.Size = new System.Drawing.Size(173, 17);
             this.drawBBCheckbox.TabIndex = 11;
@@ -165,16 +166,27 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.drawFilteredCheckbox);
+            this.groupBox1.Controls.Add(this.drawFilteredRectanglesCheckbox);
+            this.groupBox1.Controls.Add(this.drawFilteredLinesCheckbox);
             this.groupBox1.Controls.Add(this.drawBBCheckbox);
-            this.groupBox1.Controls.Add(this.drawPotentialCheckbox);
-            this.groupBox1.Controls.Add(this.drawFoundCheckbox);
+            this.groupBox1.Controls.Add(this.drawFoundRectanglesCheckbox);
+            this.groupBox1.Controls.Add(this.drawFoundCardsCheckbox);
             this.groupBox1.Location = new System.Drawing.Point(12, 41);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(574, 47);
+            this.groupBox1.Size = new System.Drawing.Size(736, 47);
             this.groupBox1.TabIndex = 13;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Draw options";
+            // 
+            // drawFilteredRectanglesCheckbox
+            // 
+            this.drawFilteredRectanglesCheckbox.AutoSize = true;
+            this.drawFilteredRectanglesCheckbox.Location = new System.Drawing.Point(284, 19);
+            this.drawFilteredRectanglesCheckbox.Name = "drawFilteredRectanglesCheckbox";
+            this.drawFilteredRectanglesCheckbox.Size = new System.Drawing.Size(136, 17);
+            this.drawFilteredRectanglesCheckbox.TabIndex = 12;
+            this.drawFilteredRectanglesCheckbox.Text = "Filtered rectangles (red)";
+            this.drawFilteredRectanglesCheckbox.UseVisualStyleBackColor = true;
             // 
             // outputSelector
             // 
@@ -185,21 +197,21 @@
             "Edges (Sobel)",
             "White top hat",
             "White top hat (threshold 60)",
-            "White top hat (threshold 25)",
+            "White top hat (threshold 30)",
             "Line support dilation",
             "Hough"});
             this.outputSelector.Location = new System.Drawing.Point(6, 15);
             this.outputSelector.Name = "outputSelector";
-            this.outputSelector.Size = new System.Drawing.Size(436, 21);
+            this.outputSelector.Size = new System.Drawing.Size(274, 21);
             this.outputSelector.TabIndex = 14;
             this.outputSelector.SelectedIndexChanged += new System.EventHandler(this.outputSelector_SelectedIndexChanged);
             // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.outputSelector);
-            this.groupBox2.Location = new System.Drawing.Point(592, 41);
+            this.groupBox2.Location = new System.Drawing.Point(754, 41);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(448, 47);
+            this.groupBox2.Size = new System.Drawing.Size(286, 47);
             this.groupBox2.TabIndex = 15;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Output image";
@@ -243,13 +255,14 @@
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.Button batchButton;
         private System.Windows.Forms.ProgressBar progressBar1;
-        private System.Windows.Forms.CheckBox drawFilteredCheckbox;
-        private System.Windows.Forms.CheckBox drawPotentialCheckbox;
-        private System.Windows.Forms.CheckBox drawFoundCheckbox;
+        private System.Windows.Forms.CheckBox drawFilteredLinesCheckbox;
+        private System.Windows.Forms.CheckBox drawFoundRectanglesCheckbox;
+        private System.Windows.Forms.CheckBox drawFoundCardsCheckbox;
         private System.Windows.Forms.CheckBox drawBBCheckbox;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ComboBox outputSelector;
         private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.CheckBox drawFilteredRectanglesCheckbox;
 
     }
 }

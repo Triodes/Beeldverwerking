@@ -53,7 +53,7 @@ namespace INFOIBV
 
             // Create thresholds from the WTH
             int[,] wth60 = Threshold.Compute(wth, 60);
-            int[,] wth25 = Threshold.Compute(wth, 25);
+            int[,] wth30 = Threshold.Compute(wth, 30);
 
             // Calculate Hough transform
             const double STEP_SIZE = 0.25;
@@ -97,7 +97,7 @@ namespace INFOIBV
                     output = wth60;
                     break;
                 case 4:
-                    output = wth25;
+                    output = wth30;
                     break;
                 case 5:
                     output = dilation;
@@ -114,22 +114,30 @@ namespace INFOIBV
             Graphics g = Graphics.FromImage(outputImage);
 
             // Draw the filtered lines
-            if (drawFilteredCheckbox.Checked)
+            if (drawFilteredLinesCheckbox.Checked)
                 DrawLines(lines, g, outputImage.Width, outputImage.Height);
 
             // Draw the potential cards (card-shaped rectangles)
-            if(drawPotentialCheckbox.Checked)
+            if(drawFoundRectanglesCheckbox.Checked)
             {
                 foreach (Card card in cards)
                 {
-                    card.Draw(g,Pens.Orange);
+                    card.Draw(g,Pens.Yellow);
+                }
+            }
+
+            if (drawFilteredRectanglesCheckbox.Checked)
+            {
+                foreach (Card card in filteredCards)
+                {
+                    card.Draw(g, Pens.Red);
                 }
             }
 
             // Classify and draw all filtered cards
             foreach (Card card in filteredCards)
             {
-                List<ShapeInfo> shapes = Shapes.Find(wth25, card);
+                List<ShapeInfo> shapes = Shapes.Find(wth30, card);
 
                 if (shapes.Count > 10) continue;
 
@@ -141,7 +149,7 @@ namespace INFOIBV
                         DrawShapes(shapes, g);
 
                     // Draw the card outline
-                    if (drawFoundCheckbox.Checked)
+                    if (drawFoundCardsCheckbox.Checked)
                         card.Draw(g);
 
                     // Format the card name and print it on the card
@@ -228,14 +236,14 @@ namespace INFOIBV
 
         private void Batch_Click(object sender, EventArgs e)
         {
-            EnableDisableElements(false);
-
+            batchButton.Enabled = false;
             // Run the algorithm on multiple images.
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Multiselect = true;
             dialog.Filter = "Bitmap files (*.bmp;*.jpg;*.png;*.jpeg)|*.bmp;*.jpg;*.png;*.jpeg";
             if (dialog.ShowDialog() == DialogResult.OK)
             {
+                EnableDisableElements(false);
                 string[] files = dialog.FileNames;
 
                 progressBar1.Step = 1;
@@ -265,18 +273,20 @@ namespace INFOIBV
         {
             bool enabled = outputSelector.SelectedIndex != 6;
 
+            drawFilteredRectanglesCheckbox.Enabled = enabled;
             drawBBCheckbox.Enabled = enabled;
-            drawFilteredCheckbox.Enabled = enabled;
-            drawFoundCheckbox.Enabled = enabled;
-            drawPotentialCheckbox.Enabled = enabled;
+            drawFilteredLinesCheckbox.Enabled = enabled;
+            drawFoundCardsCheckbox.Enabled = enabled;
+            drawFoundRectanglesCheckbox.Enabled = enabled;
         }
 
         private void EnableDisableElements(bool enable)
         {
+            drawFilteredRectanglesCheckbox.Enabled = enable;
             drawBBCheckbox.Enabled = enable;
-            drawFilteredCheckbox.Enabled = enable;
-            drawFoundCheckbox.Enabled = enable;
-            drawPotentialCheckbox.Enabled = enable;
+            drawFilteredLinesCheckbox.Enabled = enable;
+            drawFoundCardsCheckbox.Enabled = enable;
+            drawFoundRectanglesCheckbox.Enabled = enable;
             outputSelector.Enabled = enable;
             batchButton.Enabled = enable;
             applyButton.Enabled = enable;

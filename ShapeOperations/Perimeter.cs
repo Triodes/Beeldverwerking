@@ -50,7 +50,6 @@ namespace INFOIBV.ShapeOperations
 
                 // Append to the path.
                 Position(currentDirection, ref currX, ref currY);
-                //Console.WriteLine("Going {0} [{1}x{2}] - [{3}x{4}]", currentDirection, currX, currY, startX, startY);
                 result.Add(currentDirection);
             } 
             while(currX != startX || currY != startY);

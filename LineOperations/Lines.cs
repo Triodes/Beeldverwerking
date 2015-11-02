@@ -200,7 +200,6 @@ namespace INFOIBV.LineOperations
 
                             if (Math.Abs(ratio - 1.43) <= 0.15)
                             {
-                                Console.WriteLine("ratio: " + ratio);
                                 Card card = OrderLines(a, b, c, d);
 
                                 result.Add(card);
@@ -323,7 +322,7 @@ namespace INFOIBV.LineOperations
             Line? currentBest = null;
             foreach(Line parallelLine in bucket) 
             {
-                if(currentRho != -1 && Math.Abs(currentRho - parallelLine.rho) >= 10) 
+                if(currentRho != -1 && Math.Abs(currentRho - parallelLine.rho) >= 8) 
                 {
                     result.Add(currentBest.Value);
                     currentBest = null;
